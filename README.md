@@ -21,6 +21,7 @@ chain a callback onto a value or promise
 - [Use](#use)
 - [API](#api)
 - [Types](#types)
+  - [`Awaitable<T>`](#awaitablet)
 - [Project](#project)
   - [Version](#version)
   - [Contribute](#contribute)
@@ -76,7 +77,18 @@ The default export is `when`.
 
 This package is fully typed with [TypeScript][].
 
-**TODO**: types
+### `Awaitable<T>`
+
+Create a union of `T` and `T` as a promise-like object (`type`).
+
+```ts
+type Awaitable<T> = PromiseLike<T> | T
+```
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the value
 
 ## Project
 

@@ -3,4 +3,4 @@
  * @module when/types
  */
 
-export type {}
+export type { default as Awaitable } from '#types/awaitable'
