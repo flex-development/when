@@ -3,7 +3,7 @@
  * @module when/lib/when
  */
 
-import isPromiseLike from '#lib/is-promise-like'
+import isThenable from '#lib/is-thenable'
 import type {
   Awaitable,
   Chain,
@@ -15,7 +15,7 @@ export default when
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not a promise.
+ * or immediately if `value` is not thenable.
  *
  * @see {@linkcode Awaitable}
  * @see {@linkcode Chain}
@@ -61,7 +61,7 @@ function when<
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not a promise.
+ * or immediately if `value` is not thenable.
  *
  * @see {@linkcode Awaitable}
  * @see {@linkcode Options}
@@ -97,7 +97,7 @@ function when<
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not a promise.
+ * or immediately if `value` is not thenable.
  *
  * @see {@linkcode Chain}
  * @see {@linkcode Options}
@@ -134,7 +134,7 @@ function when(
   }
 
   // no promise, call chain function immediately.
-  if (!isPromiseLike(value)) {
+  if (!isThenable(value)) {
     try {
       return chain.call(context, ...args, value)
     } catch (e: unknown) {

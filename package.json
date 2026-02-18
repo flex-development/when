@@ -1,6 +1,6 @@
 {
   "name": "@flex-development/when",
-  "description": "Like .then, but for values and thenables",
+  "description": "Like .then, but for synchronous values and thenables",
   "version": "0.0.0",
   "keywords": [
     "async",
@@ -10,6 +10,7 @@
     "chain",
     "promise",
     "sync",
+    "synchronous",
     "then",
     "thenable",
     "typescript"

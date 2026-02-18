@@ -15,7 +15,7 @@ import fldv from '@flex-development/eslint-config'
 const config = [
   ...fldv.configs.node,
   {
-    files: ['src/lib/__tests__/is-promise-like.spec.mts'],
+    files: ['src/lib/__tests__/is-thenable.spec.mts'],
     rules: {
       'unicorn/no-thenable': 0
     }

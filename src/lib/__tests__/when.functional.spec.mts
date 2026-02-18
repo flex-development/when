@@ -3,7 +3,7 @@
  * @module when/lib/tests/functional/when
  */
 
-import isPromiseLike from '#lib/is-promise-like'
+import isThenable from '#lib/is-thenable'
 import testSubject from '#lib/when'
 import type { EmptyObject } from '@flex-development/tutils'
 import type { Awaitable, Chain, Reject } from '@flex-development/when'
@@ -57,7 +57,7 @@ describe('functional:lib/when', () => {
       const result = testSubject(succ, chain, reject, context, ...args)
 
       // Expect
-      expect(result).to.not.satisfy(isPromiseLike)
+      expect(result).to.not.satisfy(isThenable)
       expect(chain).toHaveBeenCalledExactlyOnceWith(...args, succ)
       expect(chain.mock.contexts).to.have.property('0', context)
     })
@@ -70,7 +70,7 @@ describe('functional:lib/when', () => {
       const result = testSubject(fail, { args, chain, context, reject })
 
       // Expect
-      expect(result).to.not.satisfy(isPromiseLike)
+      expect(result).to.not.satisfy(isThenable)
       expect(reject).toHaveBeenCalledAfter(chain)
       expect(reject).toHaveBeenCalledExactlyOnceWith(error)
       expect(reject.mock.contexts).to.have.property('0', context)
@@ -107,7 +107,7 @@ describe('functional:lib/when', () => {
       await result
 
       // Expect
-      expect(result).to.satisfy(isPromiseLike)
+      expect(result).to.satisfy(isThenable)
       expect(chain).toHaveBeenCalledAfter(vi.mocked(succ.then))
       expect(chain).toHaveBeenCalledExactlyOnceWith(...args, value)
       expect(chain.mock.contexts).to.have.property('0', context)
@@ -122,7 +122,7 @@ describe('functional:lib/when', () => {
       await result
 
       // Expect
-      expect(result).to.satisfy(isPromiseLike)
+      expect(result).to.satisfy(isThenable)
       expect(reject).toHaveBeenCalledAfter(vi.mocked(fail.then))
       expect(reject).toHaveBeenCalledExactlyOnceWith(error)
       expect(reject.mock.contexts).to.have.property('0', context)
@@ -134,7 +134,7 @@ describe('functional:lib/when', () => {
       await result
 
       // Expect
-      expect(result).to.satisfy(isPromiseLike)
+      expect(result).to.satisfy(isThenable)
       expect(reject).toHaveBeenCalledAfter(vi.mocked(fail.then))
       expect(reject).toHaveBeenCalledExactlyOnceWith(error)
       expect(reject.mock.contexts).to.have.property('0', context)

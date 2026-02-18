@@ -3,7 +3,7 @@
  * @module when/lib/tests/unit/when
  */
 
-import isPromiseLike from '#lib/is-promise-like'
+import isThenable from '#lib/is-thenable'
 import testSubject from '#lib/when'
 import type { Chain } from '@flex-development/when'
 import type { Mock } from 'vitest'
@@ -27,7 +27,7 @@ describe('unit:lib/when', () => {
     const result = testSubject(value, chain)
 
     // Expect
-    expect(result).to.satisfy(isPromiseLike).but.not.eq(value)
+    expect(result).to.satisfy(isThenable).but.not.eq(value)
   })
 
   it('should return thenable if `chain` returns thenable', () => {
@@ -38,6 +38,6 @@ describe('unit:lib/when', () => {
     const result = testSubject(null, { chain })
 
     // Expect
-    expect(result).to.satisfy(isPromiseLike)
+    expect(result).to.satisfy(isThenable)
   })
 })

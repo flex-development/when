@@ -1,12 +1,12 @@
 /**
- * @file Unit Tests - isPromiseLike
- * @module when/lib/tests/unit/isPromiseLike
+ * @file Unit Tests - isThenable
+ * @module when/lib/tests/unit/isThenable
  */
 
-import testSubject from '#lib/is-promise-like'
+import testSubject from '#lib/is-thenable'
 import pathe from '@flex-development/pathe'
 
-describe('unit:lib/isPromiseLike', () => {
+describe('unit:lib/isThenable', () => {
   it.each<Parameters<typeof testSubject>>([
     [null],
     [testSubject],

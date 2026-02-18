@@ -6,5 +6,5 @@
 export {
   default as isPromiseLike,
   default as isThenable
-} from '#lib/is-promise-like'
+} from '#lib/is-thenable'
 export { default as when } from '#lib/when'

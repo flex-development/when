@@ -12,15 +12,21 @@
 [![vitest](https://img.shields.io/badge/-vitest-6e9f18?style=flat\&logo=vitest\&logoColor=ffffff)](https://vitest.dev)
 [![yarn](https://img.shields.io/badge/-yarn-2c8ebb?style=flat\&logo=yarn\&logoColor=ffffff)](https://yarnpkg.com)
 
-like `.then`, but for values *and* thenables.
+like `.then`, but for synchronous values *and* thenables.
 
 ## Contents
 
 - [What is this?](#what-is-this)
 - [Install](#install)
 - [Use](#use)
+  - [Chain a synchronous value](#chain-a-synchronous-value)
+  - [Chain a *thenable*](#chain-a-thenable)
+  - [Pass arguments to the chain callback](#pass-arguments-to-the-chain-callback)
+  - [Handle rejections / thrown errors](#handle-rejections--thrown-errors)
+  - [Bind `this` context](#bind-this-context)
+  - [Use an options object](#use-an-options-object)
 - [API](#api)
-  - [`isPromiseLike<T>(value)`][ispromiselike]
+  - [`isThenable<T>(value)`][isthenable]
   - [`when<[T][, Next][, Args][, Self]>(value, chain[, reject][, context][, ...args])`][when]
 - [Types](#types)
   - [`Awaitable<T>`][awaitable]
@@ -37,7 +43,7 @@ like `.then`, but for values *and* thenables.
 `when` is a small, but useful package for chaining a callback
 onto an [awaitable][] (a value or a [*thenable*][thenable]).
 
-For thenable values, `.then` is used to call the specified callback after resolution.
+For thenable values, `.then` is used to invoke the callback after resolution.
 Otherwise, the callback is called immediately.
 This makes it easy to write one code path that supports both synchronous and asynchronous values.
 
@@ -77,7 +83,193 @@ In browsers with [`esm.sh`][esmsh]:
 
 ## Use
 
-**TODO**: use
+### Chain a synchronous value
+
+```ts
+import { isThenable, when, type Awaitable } from '@flex-development/when'
+import { ok } from 'devlop'
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<number>} result
+ */
+const result: Awaitable<number> = when(0, n => n + 1)
+
+ok(!isThenable(result), 'expected `result` to not be thenable')
+console.dir(result) // 1
+```
+
+### Chain a [*thenable*][thenable]
+
+```ts
+import { isThenable, when, type Awaitable } from '@flex-development/when'
+import { ok } from 'devlop'
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<number>} result
+ */
+const result: Awaitable<number> = when(Promise.resolve(2), n => n + 1)
+
+ok(isThenable(result), 'expected `result` to be thenable')
+console.dir(await result) // 3
+```
+
+### Pass arguments to the chain callback
+
+Arguments are passed first, and the resolved value is passed last.
+
+When the `value` passed to `when` is not [*thenable*][thenable], the resolved value is the same `value`.
+
+```ts
+import when, { type Awaitable } from '@flex-development/when'
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<number>} result
+ */
+const result: Awaitable<number> = when(1, Math.min, null, undefined, 2, 3, 4)
+
+console.dir(result) // 1
+```
+
+### Handle rejections / thrown errors
+
+```ts
+import when, { type Awaitable } from '@flex-development/when'
+
+/**
+ * The thenable value.
+ *
+ * @const {PromiseLike<never>} value
+ */
+const value: PromiseLike<never> = new Promise((resolve, reject) => {
+  return void reject(new Error('nope', { cause: { url: import.meta.url } }))
+})
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<boolean>} result
+ */
+const result: Awaitable<boolean> = when(value, chain, reject)
+
+console.dir(await result) // false
+
+/**
+ * @this {void}
+ *
+ * @return {true}
+ *  The success result
+ */
+function chain(this: void): true {
+  return true
+}
+
+/**
+ * @this {void}
+ *
+ * @param {Error} e
+ *  The error to handle
+ * @return {false}
+ *  The failure result
+ */
+function reject(this: void, e: Error): false {
+  return console.dir(e), false
+}
+```
+
+### Bind `this` context
+
+```ts
+import when, { type Awaitable } from '@flex-development/when'
+
+/**
+ * The `this` context.
+ */
+type Context = { prefix: string }
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<string>} result
+ */
+const result: Awaitable<string> = when(13, id, null, { prefix: 'id:' })
+
+console.log(result) // 'id:13'
+
+/**
+ * @this {Context}
+ *
+ * @param {number | string} num
+ *  The id number
+ * @return {string}
+ *  The id string
+ */
+function id(this: Context, num: number | string): string {
+  return this.prefix + num
+}
+```
+
+### Use an options object
+
+```ts
+import when, { type Awaitable } from '@flex-development/when'
+
+/**
+ * The `this` context.
+ */
+type Context = { errors: Error[] }
+
+/**
+ * The thenable value.
+ *
+ * @const {Promise<number>} value
+ */
+const value: Promise<number> = new Promise(resolve => resolve(3))
+
+/**
+ * The result.
+ *
+ * @const {Awaitable<number | undefined>} result
+ */
+const result: Awaitable<number | undefined> = when(value, {
+  args: [39],
+  chain: divide,
+  context: { errors: [] },
+  reject
+})
+
+console.dir(await result) // 13
+
+/**
+ * @this {void}
+ *
+ * @param {number} dividend
+ *  The number to divide
+ * @param {number} divisor
+ *  The number to divide by
+ * @return {number}
+ *  The quotient
+ */
+function divide(this: void, dividend: number, divisor: number): number {
+  return dividend / divisor
+}
+
+/**
+ * @this {Context}
+ *
+ * @param {Error} e
+ *  The error to handle
+ * @return {undefined}
+ */
+function reject(this: Context, e: Error): undefined {
+  return void this.errors.push(e)
+}
+```
 
 ## API
 
@@ -85,11 +277,11 @@ In browsers with [`esm.sh`][esmsh]:
 
 The default export is [`when`][when].
 
-### `isPromiseLike<T>(value)`
+### `isThenable<T>(value)`
 
-Check if `value` looks like a promise.
+Check if `value` looks like a [*thenable*][thenable].
 
-> 👉 **Note**: Also exported as `isThenable`.
+> 👉 **Note**: Also exported as `isPromiseLike`.
 
 #### Type Parameters
 
@@ -103,7 +295,7 @@ Check if `value` looks like a promise.
 
 #### Returns
 
-(`value is PromiseLike<T>`) `true` if `value` is [*thenable*][thenable], `false` otherwise
+(`value is PromiseLike<T>`) `true` if `value` is a thenable, `false` otherwise
 
 <!--lint disable-->
 
@@ -111,7 +303,7 @@ Check if `value` looks like a promise.
 
 <!--lint enable-->
 
-Chain a callback, calling the function after `value` is resolved, or immediately if `value` is not a promise.
+Chain a callback, calling the function after `value` is resolved, or immediately if `value` is not thenable.
 
 #### Overloads
 
@@ -341,7 +533,7 @@ By interacting with this repository, organization, or community you agree to abi
 
 [esmsh]: https://esm.sh
 
-[ispromiselike]: #ispromiseliketvalue
+[isthenable]: #isthenabletvalue
 
 [options]: #optionst-next-args-self
 

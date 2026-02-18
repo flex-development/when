@@ -1,10 +1,10 @@
 /**
- * @file isPromiseLike
- * @module when/lib/isPromiseLike
+ * @file isThenable
+ * @module when/lib/isThenable
  */
 
 /**
- * Check if `value` looks like a promise.
+ * Check if `value` looks like a thenable.
  *
  * @template {any} T
  *  The resolved value
@@ -14,9 +14,9 @@
  * @param {unknown} value
  *  The thing to check
  * @return {value is PromiseLike<T>}
- *  `true` if `value` is thenable, `false` otherwise
+ *  `true` if `value` is a thenable, `false` otherwise
  */
-function isPromiseLike<T>(this: void, value: unknown): value is PromiseLike<T> {
+function isThenable<T>(this: void, value: unknown): value is PromiseLike<T> {
   return (
     !Array.isArray(value) &&
     typeof value === 'object' &&
@@ -26,4 +26,4 @@ function isPromiseLike<T>(this: void, value: unknown): value is PromiseLike<T> {
   )
 }
 
-export default isPromiseLike
+export default isThenable

@@ -178,7 +178,7 @@ repository:
   automated_security_fixes: true
   default_branch: main
   delete_branch_on_merge: true
-  description: .then for values and thenables
+  description: .then for synchronous values and thenables
   has_issues: true
   has_projects: true
   has_wiki: false
@@ -192,6 +192,8 @@ repository:
     - awaitable
     - chain
     - promise
+    - sync
+    - synchronous
     - then
     - thenable
   visibility: public
