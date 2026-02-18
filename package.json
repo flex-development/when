@@ -1,7 +1,7 @@
 {
   "name": "@flex-development/when",
   "description": "Like .then, but for synchronous values and thenables",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "keywords": [
     "async",
     "await",

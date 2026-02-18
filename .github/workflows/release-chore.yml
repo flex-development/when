@@ -94,7 +94,7 @@ jobs:
         uses: flex-development/jq-action@1.0.0
         with:
           data: grease.config.json
-          filter: .tagprefix
+          filter: .tag.prefix
       - id: environment
         name: Get release tag
         uses: flex-development/gh-release-url-action@2.1.0
