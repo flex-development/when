@@ -1,6 +1,6 @@
 {
   "name": "@flex-development/when",
-  "description": "Chain a callback onto a value or promise",
+  "description": "Like .then, but for values and thenables",
   "version": "0.0.0",
   "keywords": [
     "async",
@@ -10,6 +10,8 @@
     "chain",
     "promise",
     "sync",
+    "then",
+    "thenable",
     "typescript"
   ],
   "license": "BSD-3-Clause",

@@ -19,6 +19,18 @@ const config = [
     rules: {
       'unicorn/no-thenable': 0
     }
+  },
+  {
+    files: ['src/lib/when.mts'],
+    rules: {
+      'promise/prefer-await-to-then': 0
+    }
+  },
+  {
+    files: ['src/types/chain.mts'],
+    rules: {
+      'jsdoc/valid-types': 0
+    }
   }
 ]
 

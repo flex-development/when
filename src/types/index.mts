@@ -4,3 +4,5 @@
  */
 
 export type { default as Awaitable } from '#types/awaitable'
+export type { default as Chain } from '#types/chain'
+export type { default as Reject } from '#types/reject'
