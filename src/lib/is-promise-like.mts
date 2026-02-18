@@ -14,7 +14,7 @@
  * @param {unknown} value
  *  The thing to check
  * @return {value is PromiseLike<T>}
- *  `true` if `value` is {@linkcode PromiseLike} object, `false` otherwise
+ *  `true` if `value` is thenable, `false` otherwise
  */
 function isPromiseLike<T>(this: void, value: unknown): value is PromiseLike<T> {
   return (

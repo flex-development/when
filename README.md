@@ -89,6 +89,8 @@ The default export is [`when`][when].
 
 Check if `value` looks like a promise.
 
+> 👉 **Note**: Also exported as `isThenable`.
+
 #### Type Parameters
 
 - `T` (`any`)
@@ -101,7 +103,7 @@ Check if `value` looks like a promise.
 
 #### Returns
 
-(`value is PromiseLike<T>`) `true` if `value` is `PromiseLike` object, `false` otherwise
+(`value is PromiseLike<T>`) `true` if `value` is [*thenable*][thenable], `false` otherwise
 
 <!--lint disable-->
 
@@ -179,7 +181,7 @@ This package is fully typed with [TypeScript][].
 
 ### `Awaitable<T>`
 
-A synchronous or thenable value (`type`).
+A synchronous or [*thenable*][thenable] value (`type`).
 
 ```ts
 type Awaitable<T> = PromiseLike<T> | T

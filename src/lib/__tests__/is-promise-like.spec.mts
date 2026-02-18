@@ -11,14 +11,14 @@ describe('unit:lib/isPromiseLike', () => {
     [null],
     [testSubject],
     [{ then: pathe.cwd() }]
-  ])('should return `false` if `value` is not promise-like (%#)', value => {
+  ])('should return `false` if `value` is not thenable (%#)', value => {
     expect(testSubject(value)).to.be.false
   })
 
   it.each<Parameters<typeof testSubject>>([
     [new Promise(vi.fn())],
     [{ then: vi.fn() }]
-  ])('should return `true` if `value` is promise-like (%#)', value => {
+  ])('should return `true` if `value` is thenable (%#)', value => {
     expect(testSubject(value)).to.be.true
   })
 })
