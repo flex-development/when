@@ -4,10 +4,10 @@
  */
 
 /**
- * Create a union of `T` and `T` as a promise-like object.
+ * A synchronous or thenable value.
  *
  * @template {any} T
- *  The value
+ *  The resolved value
  */
 type Awaitable<T> = PromiseLike<T> | T
 

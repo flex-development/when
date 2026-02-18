@@ -27,13 +27,22 @@ like `.then`, but for values *and* thenables.
   - [`Chain<[T][, Next][, Args][, Self]>`][chain]
   - [`Options<[T][, Next][, Args][, Self]>`][options]
   - [`Reject<[Next][, Fail][, Self]>`][reject]
+- [Glossary](#glossary)
 - [Project](#project)
   - [Version](#version)
   - [Contribute](#contribute)
 
 ## What is this?
 
-**TODO**: what is this?
+`when` is a small, but useful package for chaining a callback
+onto an [awaitable][] (a value or a [*thenable*][thenable]).
+
+For thenable values, `.then` is used to call the specified callback after resolution.
+Otherwise, the callback is called immediately.
+This makes it easy to write one code path that supports both synchronous and asynchronous values.
+
+`when` is especially useful in libraries supporting awaitable APIs or libraries that accept user-provided hooks,
+loaders, or resolvers that may or may not return promises.
 
 ## Install
 
@@ -170,7 +179,7 @@ This package is fully typed with [TypeScript][].
 
 ### `Awaitable<T>`
 
-Create a union of `T` and `T` as a promise-like object (`type`).
+A synchronous or thenable value (`type`).
 
 ```ts
 type Awaitable<T> = PromiseLike<T> | T
@@ -179,7 +188,7 @@ type Awaitable<T> = PromiseLike<T> | T
 #### Type Parameters
 
 - `T` (`any`)
-  — the value
+  — the resolved value
 
 ### `Chain<[T][, Next][, Args][, Self]>`
 
@@ -293,6 +302,20 @@ type Reject<
 
 ([`Awaitable<Next>`][awaitable]) The next promise or value
 
+## Glossary
+
+### *awaitable*
+
+A synchronous or [*thenable*][thenable] value.
+
+### *thenable*
+
+An object or function with a `.then` method.
+
+JavaScript engines use duck-typing for promises.
+Structures with a `.then` method will be treated as promise-like objects, and work with built-in mechanisms
+like [`Promise.resolve`][promise-resolve] and the [`await` keyword][await] like native promises.
+
 ## Project
 
 ### Version
@@ -306,6 +329,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 This project has a [code of conduct](./CODE_OF_CONDUCT.md).
 By interacting with this repository, organization, or community you agree to abide by its terms.
 
+[await]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/await
+
 [awaitable]: #awaitablet
 
 [chain]: #chaint-next-args-self
@@ -318,9 +343,13 @@ By interacting with this repository, organization, or community you agree to abi
 
 [options]: #optionst-next-args-self
 
+[promise-resolve]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
+
 [reject]: #rejectnext-fail-self
 
 [semver]: https://semver.org
+
+[thenable]: #thenable
 
 [typescript]: https://www.typescriptlang.org
 
