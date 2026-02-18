@@ -17,6 +17,7 @@ like `.then`, but for synchronous values *and* thenables.
 ## Contents
 
 - [What is this?](#what-is-this)
+  - [Why not `Promise.resolve`?](#why-not-promiseresolve)
 - [Install](#install)
 - [Use](#use)
   - [Chain a synchronous value](#chain-a-synchronous-value)
@@ -49,6 +50,11 @@ This makes it easy to write one code path that supports both synchronous and asy
 
 `when` is especially useful in libraries supporting awaitable APIs or libraries that accept user-provided hooks,
 loaders, or resolvers that may or may not return promises.
+
+### Why not `Promise.resolve`?
+
+`when` preserves synchronous values when possible, thus avoiding microtask scheduling and needless promise-allocation
+for these values, as well as making it a great choice for libraries offering API flexibility.
 
 ## Install
 
