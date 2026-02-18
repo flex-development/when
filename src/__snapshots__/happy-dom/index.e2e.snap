@@ -2,6 +2,7 @@
 
 exports[`e2e:when > should expose public api 1`] = `
 [
+  "default",
   "isPromiseLike",
   "isThenable",
   "when",
