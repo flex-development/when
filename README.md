@@ -71,7 +71,23 @@ In browsers with [`esm.sh`][esmsh]:
 
 The default export is `when`.
 
-**TODO**: api
+### `isPromiseLike<T>(value)`
+
+Check if `value` looks like a promise.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+
+#### Returns
+
+(`value is PromiseLike<T>`) `true` if `value` is `PromiseLike` object, `false` otherwise
 
 ## Types
 

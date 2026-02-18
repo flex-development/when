@@ -3,4 +3,4 @@
  * @module when/lib
  */
 
-export {}
+export { default as isPromiseLike } from '#lib/is-promise-like'
