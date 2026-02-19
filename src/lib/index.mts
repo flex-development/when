@@ -3,6 +3,7 @@
  * @module when/lib
  */
 
+export { default as isPromise } from '#lib/is-promise'
 export {
   default as isPromiseLike,
   default as isThenable

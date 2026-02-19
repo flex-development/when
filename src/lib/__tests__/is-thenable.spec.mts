@@ -11,14 +11,14 @@ describe('unit:lib/isThenable', () => {
     [null],
     [testSubject],
     [{ then: pathe.cwd() }]
-  ])('should return `false` if `value` is not thenable (%#)', value => {
+  ])('should return `false` if `value` is not a thenable (%#)', value => {
     expect(testSubject(value)).to.be.false
   })
 
   it.each<Parameters<typeof testSubject>>([
     [new Promise(vi.fn())],
     [{ then: vi.fn() }]
-  ])('should return `true` if `value` is thenable (%#)', value => {
+  ])('should return `true` if `value` is a thenable (%#)', value => {
     expect(testSubject(value)).to.be.true
   })
 })

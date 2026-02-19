@@ -28,6 +28,7 @@ like `.then`, but for synchronous values *and* thenables.
   - [Use an options object](#use-an-options-object)
 - [API](#api)
   - [`isThenable<T>(value)`][isthenable]
+  - [`isPromise<T>(value)`][ispromise]
   - [`when<[T][, Next][, Args][, Self]>(value, chain[, reject][, context][, ...args])`][when]
 - [Types](#types)
   - [`Awaitable<T>`][awaitable]
@@ -303,6 +304,24 @@ Check if `value` looks like a [*thenable*][thenable].
 
 (`value is PromiseLike<T>`) `true` if `value` is a thenable, `false` otherwise
 
+### `isPromise<T>(value)`
+
+Check if `value` looks like a promise.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+
+#### Returns
+
+(`value is Promise<T>`) `true` if `value` is a promise, `false` otherwise
+
 <!--lint disable-->
 
 ### `when<[T][, Next][, Args][, Self]>(value, chain[, reject][, context][, ...args])`
@@ -540,6 +559,8 @@ By interacting with this repository, organization, or community you agree to abi
 [esmsh]: https://esm.sh
 
 [isthenable]: #isthenabletvalue
+
+[ispromise]: #ispromisetvalue
 
 [options]: #optionst-next-args-self
 
