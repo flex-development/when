@@ -1,3 +1,19 @@
+## [2.0.0](https://github.com/flex-development/when/compare/1.0.0...2.0.0) (2026-02-19)
+
+### ⚠ BREAKING CHANGES
+
+- `catch` support
+
+### :package: Build
+
+- [[`dd93b19`](https://github.com/flex-development/when/commit/dd93b19904b21760b5ae86a48fe7b7127adbcf95)] **deps-dev:** Bump @commitlint/cli from 20.4.1 to 20.4.2 in the commitlint group ([#9](https://github.com/flex-development/when/issues/9))
+- [[`9229069`](https://github.com/flex-development/when/commit/9229069b28f05bf3394c29d85ec3261c6246959b)] **deps-dev:** Bump happy-dom from 20.6.2 to 20.6.3 ([#10](https://github.com/flex-development/when/issues/10))
+
+### :sparkles: Features
+
+- [[`8d8f17f`](https://github.com/flex-development/when/commit/8d8f17f847ac90d5633d87c554229bbd42d9a1cf)] `catch` support
+- [[`003be0f`](https://github.com/flex-development/when/commit/003be0f34d1e626b0ee6ea940d73f0babd12df78)] **lib:** `isPromise`
+
 ## 1.0.0 (2026-02-18)
 
 ### :package: Build
@@ -68,6 +84,7 @@
 ### :house_with_garden: Housekeeping
 
 - [[`a5418df`](https://github.com/flex-development/when/commit/a5418dfc0cae7c2ca231e735665d76b625615edc)] initial commit
+
 
 
 
