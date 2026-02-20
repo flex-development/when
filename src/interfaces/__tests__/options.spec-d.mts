@@ -5,14 +5,16 @@
 
 import type TestSubject from '#interfaces/options'
 import type { Nilable } from '@flex-development/tutils'
-import type { Chain, Reject } from '@flex-development/when'
+import type { Chain, Fail } from '@flex-development/when'
 
 describe('unit-d:interfaces/Options', () => {
   type T = URL | string
   type Next = string
+  type Failure = never
+  type Error = unknown
   type Args = [T]
-  type Self = undefined
-  type Subject = TestSubject<T, Next, Args, Self>
+  type This = undefined
+  type Subject = TestSubject<T, Next, Failure, Args, Error, This>
 
   it('should match [args?: Args | null | undefined]', () => {
     expectTypeOf<Subject>()
@@ -20,21 +22,21 @@ describe('unit-d:interfaces/Options', () => {
       .toEqualTypeOf<Nilable<Args>>()
   })
 
-  it('should match [chain: Chain<T, Next, Args, Self>]', () => {
+  it('should match [chain: Chain<T, Next, Args, This>]', () => {
     expectTypeOf<Subject>()
       .toHaveProperty('chain')
-      .toEqualTypeOf<Chain<T, Next, Args, Self>>()
+      .toEqualTypeOf<Chain<T, Next, Args, This>>()
   })
 
-  it('should match [context?: Self | null | undefined]', () => {
+  it('should match [context?: This | null | undefined]', () => {
     expectTypeOf<Subject>()
       .toHaveProperty('context')
-      .toEqualTypeOf<Nilable<Self>>()
+      .toEqualTypeOf<Nilable<This>>()
   })
 
-  it('should match [reject?: Reject<Next, any, Self> | null | undefined]', () => {
+  it('should match [fail?: Fail<Failure, Error, This> | null | undefined]', () => {
     expectTypeOf<Subject>()
-      .toHaveProperty('reject')
-      .toEqualTypeOf<Nilable<Reject<Next, any, Self>>>()
+      .toHaveProperty('fail')
+      .toEqualTypeOf<Nilable<Fail<Failure, Error, This>>>()
   })
 })

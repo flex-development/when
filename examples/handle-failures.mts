@@ -1,6 +1,6 @@
 /**
- * @file Examples - handleRejectionsAndErrors
- * @module examples/handle-rejections-and-errors
+ * @file Examples - handleFailures
+ * @module examples/handle-failures
  */
 
 import when, { type Awaitable } from '@flex-development/when'
@@ -19,28 +19,28 @@ const value: PromiseLike<never> = new Promise((resolve, reject) => {
  *
  * @const {Awaitable<boolean>} result
  */
-const result: Awaitable<boolean> = when(value, chain, reject)
+const result: Awaitable<boolean> = when(value, chain, fail)
 
 console.dir(await result) // false
 
 /**
- * @this {null}
+ * @this {void}
  *
  * @return {true}
  *  The success result
  */
-function chain(this: null): true {
+function chain(this: void): true {
   return true
 }
 
 /**
- * @this {null}
+ * @this {void}
  *
  * @param {Error} e
  *  The error to handle
  * @return {false}
  *  The failure result
  */
-function reject(this: null, e: Error): false {
+function fail(this: void, e: Error): false {
   return console.dir(e), false
 }

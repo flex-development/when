@@ -17,45 +17,72 @@ like `.then`, but for synchronous values *and* thenables.
 ## Contents
 
 - [What is this?](#what-is-this)
+- [When should I use this?](#when-should-i-use-this)
   - [Why not `Promise.resolve`?](#why-not-promiseresolve)
+  - [Design guarantees](#design-guarantees)
 - [Install](#install)
 - [Use](#use)
   - [Chain a synchronous value](#chain-a-synchronous-value)
   - [Chain a *thenable*](#chain-a-thenable)
   - [Pass arguments to the chain callback](#pass-arguments-to-the-chain-callback)
-  - [Handle rejections / thrown errors](#handle-rejections--thrown-errors)
+  - [Handle failures](#handle-failures)
   - [Bind `this` context](#bind-this-context)
   - [Use an options object](#use-an-options-object)
 - [API](#api)
-  - [`isThenable<T>(value)`][isthenable]
   - [`isPromise<T>(value)`][ispromise]
-  - [`when<[T][, Next][, Args][, Self]>(value, chain[, reject][, context][, ...args])`][when]
+  - [`isThenable<T>(value)`][isthenable]
+  - [`when<T[, Next][, Failure][, Args][, Error][, This]>(value, chain[, reject][, context][, ...args])`][when]
 - [Types](#types)
   - [`Awaitable<T>`][awaitable]
-  - [`Chain<[T][, Next][, Args][, Self]>`][chain]
-  - [`Options<[T][, Next][, Args][, Self]>`][options]
-  - [`Reject<[Next][, Fail][, Self]>`][reject]
+  - [`Chain<[T][, Next][, Args][, This]>`][chain]
+  - [`Fail<[Next][, Error][, This]>`][fail]
+  - [`Options<[T][, Next][, Failure][, Args][, Error][, This]>`][options]
 - [Glossary](#glossary)
 - [Project](#project)
   - [Version](#version)
   - [Contribute](#contribute)
+  - [Sponsor](#sponsor)
 
 ## What is this?
 
-`when` is a small, but useful package for chaining a callback
-onto an [awaitable][] (a value or a [*thenable*][thenable]).
+`when` is a tiny primitive for chaining callbacks
+onto [awaitables][awaitable] (synchronous or [*thenable*][thenable] values).
 
-For thenable values, `.then` is used to invoke the callback after resolution.
-Otherwise, the callback is called immediately.
-This makes it easy to write one code path that supports both synchronous and asynchronous values.
+For thenable values, `then` is used to invoke the callback after resolution. Otherwise, the callback fires immediately.
+This makes it easy to write one code path that supports both synchronous values and promises.
 
-`when` is especially useful in libraries supporting awaitable APIs or libraries that accept user-provided hooks,
-loaders, or resolvers that may or may not return promises.
+## When should I use this?
 
-### Why not `Promise.resolve`?
+`when` is especially useful in libraries implementing awaitable APIs.
 
-`when` preserves synchronous values when possible, thus avoiding microtask scheduling and needless promise-allocation
-for these values, as well as making it a great choice for libraries offering API flexibility.
+It provides [`Promise.then`][promise-then] semantics without forcing [`Promise.resolve`][promise-resolve],
+preserving synchronous execution whenever possible.
+
+Typical use cases include plugin systems, hook pipelines, module resolvers, data loaders, and file system adapters where
+users may return both synchronous or asynchronous values.
+
+If you're only dealing with promises and thenables, consider using native `async/await` or `Promise` chaining instead.
+
+### Why not [`Promise.resolve`][promise-resolve]?
+
+`when` preserves synchronous operations whenever possible,
+avoiding unnecessary promise allocation and microtask scheduling.
+
+```ts
+Promise.resolve(value).then(fn) // always a promise
+```
+
+```ts
+when(value, fn) // only a promise if `value` is a thenable, or `fn` returns one
+```
+
+### Design guarantees
+
+- Synchronous values remain synchronous
+- [*Thenable*s][thenable] are chained without wrapping in [`Promise.resolve`][promise-resolve]
+- No additional microtasks are scheduled for non-thenables
+- Failures propagate unless a `fail` handler is provided
+- Returned thenables are preserved without additional wrapping
 
 ## Install
 
@@ -126,7 +153,7 @@ console.dir(await result) // 3
 
 ### Pass arguments to the chain callback
 
-Arguments are passed first, and the resolved value is passed last.
+When arguments are provided, they are passed to the `chain` callback first, followed by the resolved value.
 
 When the `value` passed to `when` is not [*thenable*][thenable], the resolved value is the same `value`.
 
@@ -138,12 +165,23 @@ import when, { type Awaitable } from '@flex-development/when'
  *
  * @const {Awaitable<number>} result
  */
-const result: Awaitable<number> = when(1, Math.min, null, undefined, 2, 3, 4)
+const result: Awaitable<number> = when(
+  1, // last argument passed to `Math.min`
+  Math.min, // `chain`
+  null, // `fail`
+  undefined, // `context`
+  2, // first argument passed to `Math.min`
+  3, // second argument passed to `Math.min`
+  4 // third argument passed to `Math.min`
+)
 
 console.dir(result) // 1
 ```
 
-### Handle rejections / thrown errors
+### Handle failures
+
+For [*thenable*s][thenable], the `fail` callback is passed to `then` as the `onrejected` parameter,
+and if implemented, to `catch` as well to prevent unhandled rejections.
 
 ```ts
 import when, { type Awaitable } from '@flex-development/when'
@@ -162,7 +200,7 @@ const value: PromiseLike<never> = new Promise((resolve, reject) => {
  *
  * @const {Awaitable<boolean>} result
  */
-const result: Awaitable<boolean> = when(value, chain, reject)
+const result: Awaitable<boolean> = when(value, chain, fail)
 
 console.dir(await result) // false
 
@@ -184,7 +222,7 @@ function chain(this: void): true {
  * @return {false}
  *  The failure result
  */
-function reject(this: void, e: Error): false {
+function fail(this: void, e: Error): false {
   return console.dir(e), false
 }
 ```
@@ -247,7 +285,7 @@ const result: Awaitable<number | undefined> = when(value, {
   args: [39],
   chain: divide,
   context: { errors: [] },
-  reject
+  fail
 })
 
 console.dir(await result) // 13
@@ -273,7 +311,7 @@ function divide(this: void, dividend: number, divisor: number): number {
  *  The error to handle
  * @return {undefined}
  */
-function reject(this: Context, e: Error): undefined {
+function fail(this: Context, e: Error): undefined {
   return void this.errors.push(e)
 }
 ```
@@ -284,9 +322,31 @@ function reject(this: Context, e: Error): undefined {
 
 The default export is [`when`][when].
 
+### `isPromise<T>(value)`
+
+Check if `value` looks like a `Promise`.
+
+> 👉 **Note**: This function intentionally performs a structural check instead of a brand check.
+> It does not rely on `instanceof Promise` or constructors, making it compatible with cross-realm promises
+> and custom thenables.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+
+#### Returns
+
+(`value is Promise<T>`) `true` if `value` is a [*thenable*][thenable] with a `catch` method, `false` otherwise
+
 ### `isThenable<T>(value)`
 
-Check if `value` looks like a [*thenable*][thenable].
+Check if `value` looks like a [*thenable*][thenable], i.e. a `PromiseLike` object.
 
 > 👉 **Note**: Also exported as `isPromiseLike`.
 
@@ -302,33 +362,16 @@ Check if `value` looks like a [*thenable*][thenable].
 
 #### Returns
 
-(`value is PromiseLike<T>`) `true` if `value` is a thenable, `false` otherwise
-
-### `isPromise<T>(value)`
-
-Check if `value` looks like a promise.
-
-#### Type Parameters
-
-- `T` (`any`)
-  — the resolved value
-
-#### Parameters
-
-- `value` (`unknown`)
-  — the thing to check
-
-#### Returns
-
-(`value is Promise<T>`) `true` if `value` is a promise, `false` otherwise
+(`value is PromiseLike<T>`) `true` if `value` is an object or function with a `then` method, `false` otherwise
 
 <!--lint disable-->
 
-### `when<[T][, Next][, Args][, Self]>(value, chain[, reject][, context][, ...args])`
+### `when<T[, Next][, Failure][, Args][, Error][, This]>(value, chain[, fail][, context][, ...args])`
 
 <!--lint enable-->
 
-Chain a callback, calling the function after `value` is resolved, or immediately if `value` is not thenable.
+Chain a callback, calling the function after `value` is resolved,
+or immediately if `value` is not a [*thenable*][thenable].
 
 #### Overloads
 
@@ -337,13 +380,13 @@ function when<
   T,
   Next = any,
   Args extends any[] = any[],
-  Self = unknown
+  This = unknown
 >(
   this: void,
   value: Awaitable<T>,
-  chain: Chain<T, Next, Args, Self>,
-  reject?: Reject<Next, any, Self> | null | undefined,
-  context?: Self | null | undefined,
+  chain: Chain<T, Next, Args, This>,
+  fail?: null | undefined,
+  context?: This | null | undefined,
   ...args: Args
 ): Awaitable<Next>
 ```
@@ -352,13 +395,33 @@ function when<
 function when<
   T,
   Next = any,
+  Failure = Next,
   Args extends any[] = any[],
-  Self = unknown
+  Error = any,
+  This = unknown
 >(
   this: void,
   value: Awaitable<T>,
-  chain: Options<T, Next, Args, Self>
-): Awaitable<Next>
+  chain: Chain<T, Next, Args, This>,
+  fail?: Fail<Failure, Error, This> | null | undefined,
+  context?: This | null | undefined,
+  ...args: Args
+): Awaitable<Failure | Next>
+```
+
+```ts
+function when<
+  T,
+  Next = any,
+  Failure = Next,
+  Args extends any[] = any[],
+  Error = any,
+  This = unknown
+>(
+  this: void,
+  value: Awaitable<T>,
+  chain: Options<T, Next, Failure, Args, Error, This>
+): Awaitable<Failure | Next>
 ```
 
 #### Type Parameters
@@ -368,29 +431,41 @@ function when<
 - `Next` (`any`, optional)
   — the next resolved value
   - **default**: `any`
+- `Failure` (`any`, optional)
+  — the next resolved value on failure
+  - **default**: `Next`
 - `Args` (`readonly any[]`, optional)
-  — the function arguments
+  — the chain function arguments
   - **default**: `any[]`
-- `Self` (`any`, optional)
+- `Error` (`any`, optional)
+  — the error to possibly handle
+  - **default**: `any`
+- `This` (`any`, optional)
   — the `this` context
   - **default**: `unknown`
 
 #### Parameters
 
 - `value` ([`Awaitable<T>`][awaitable])
-  — the promise or the resolved value
-- `chain` ([`Chain<T, Next, Args, Self>`][chain] | [`Options<T, Next, Args, Self>`][options])
+  — the current [*awaitable*][awaitable-term]
+- `chain` ([`Chain<T, Next, Args, This>`][chain] | [`Options<T, Next, Failure, Args, Error, This>`][options])
   — the chain callback or options for chaining
-- `reject` ([`Reject<Next, any, Self>`][reject] | `null` | `undefined`)
-  — the callback to fire when a promise is rejected or an error is thrown
-- `context` (`Self` | `null` | `undefined`)
-  — the `this` context of the chain and error callbacks
+- `fail` ([`Fail<Failure, Error, This>`][fail] | `null` | `undefined`)
+  — the callback to fire when a failure occurs. failures include:
+  - rejections of the input [*thenable*][thenable]
+  - rejections returned from `chain`
+  - synchronous errors thrown in `chain`\
+    if no `fail` handler is provided, failures are re-thrown or re-propagated.
+  > 👉 **note**: for thenables, this callback is passed to `then` as the `onrejected` parameter,
+  > and if implemented, to `catch` as well to prevent unhandled rejections.
+- `context` (`This` | `null` | `undefined`)
+  — the `this` context of the chain and `fail` callbacks
 - `...args` (`Args`)
   — the arguments to pass to the chain callback
 
 #### Returns
 
-([`Awaitable<Next>`][awaitable]) The next promise or value
+([`Awaitable<Failure | Next>`][awaitable] | [`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
 
 ## Types
 
@@ -409,7 +484,7 @@ type Awaitable<T> = PromiseLike<T> | T
 - `T` (`any`)
   — the resolved value
 
-### `Chain<[T][, Next][, Args][, Self]>`
+### `Chain<[T][, Next][, Args][, This]>`
 
 A chain callback (`type`).
 
@@ -418,8 +493,8 @@ type Chain<
   T = any,
   Next = any,
   Args extends readonly any[] = any[],
-  Self = unknown
-> = (this: Self, ...params: [...Args, T]) => Awaitable<Next>
+  This = unknown
+> = (this: This, ...params: [...Args, T]) => Awaitable<Next>
 ```
 
 #### Type Parameters
@@ -433,22 +508,56 @@ type Chain<
 - `Args` (`readonly any[]`, optional)
   — the function arguments
   - **default**: `any[]`
-- `Self` (`any`, optional)
+- `This` (`any`, optional)
   — the `this` context
   - **default**: `unknown`
 
 #### Parameters
 
-- **`this`** (`Self`)
+- **`this`** (`This`)
 - `...params` (`[...Args, T]`)
   — the function parameters, with the last being the previously resolved value.
   in cases where a promise is not being resolved, this is the same `value` passed to `when`
 
 #### Returns
 
-([`Awaitable<Next>`][awaitable]) The next promise or value
+([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
 
-### `Options<[T][, Next][, Args][, Self]>`
+### `Fail<[Next][, Error][, This]>`
+
+The callback to fire when a failure occurs (`type`).
+
+```ts
+type Fail<
+  Next = any,
+  Error = any,
+  This = unknown
+> = (this: This, e: Error) => Awaitable<Next>
+```
+
+#### Type Parameters
+
+- `Next` (`any`, optional)
+  — the next resolved value
+  - **default**: `any`
+- `Error` (`any`, optional)
+  — the error to handle
+  - **default**: `any`
+- `This` (`any`, optional)
+  — the `this` context
+  - **default**: `unknown`
+
+#### Parameters
+
+- **`this`** (`This`)
+- `e` (`Error`)
+  — the error
+
+#### Returns
+
+([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
+
+### `Options<[T][, Next][, Failure][, Args][, Error][, This]>`
 
 Options for chaining (`interface`).
 
@@ -456,8 +565,10 @@ Options for chaining (`interface`).
 interface Options<
   T = any,
   Next = any,
+  Failure = Next,
   Args extends readonly any[] = any[],
-  Self = any
+  Error = any,
+  This = any
 > { /* ... */ }
 ```
 
@@ -469,10 +580,16 @@ interface Options<
 - `Next` (`any`, optional)
   — the next resolved value
   - **default**: `any`
+- `Failure` (`any`, optional)
+  — the next resolved value on failure
+  - **default**: `Next`
 - `Args` (`readonly any[]`, optional)
   — the chain function arguments
   - **default**: `any[]`
-- `Self` (`any`, optional)
+- `Error` (`any`, optional)
+  — the error to possibly handle
+  - **default**: `any`
+- `This` (`any`, optional)
   — the `this` context
   - **default**: `any`
 
@@ -480,46 +597,18 @@ interface Options<
 
 - `args?` (`Args` | `null` | `undefined`)
   — the arguments to pass to the `chain` callback
-- `chain` ([`Chain<T, Next, Args, Self>`][chain])
+- `chain` ([`Chain<T, Next, Args, This>`][chain])
   — the chain callback
-- `context?` (`Self` | `null` | `undefined`)
-  — the `this` context of the `chain` and `reject` callbacks
-- `reject?` ([`Reject<Next, any, Self>`][reject] | `null` | `undefined`)
-  — the callback to fire when a promise is rejected or an error is thrown
-
-### `Reject<[Next][, Fail][, Self]>`
-
-The callback to fire when a promise is rejected or an error is thrown from a synchronous function (`type`).
-
-```ts
-type Reject<
-  Next = any,
-  Fail = any,
-  Self = unknown
-> = (this: Self, e: Fail) => Awaitable<Next>
-```
-
-#### Type Parameters
-
-- `Next` (`any`, optional)
-  — the next resolved value
-  - **default**: `any`
-- `Fail` (`any`, optional)
-  — the error to handle
-  - **default**: `any`
-- `Self` (`any`, optional)
-  — the `this` context
-  - **default**: `unknown`
-
-#### Parameters
-
-- **`this`** (`Self`)
-- `e` (`Fail`)
-  — the error
-
-#### Returns
-
-([`Awaitable<Next>`][awaitable]) The next promise or value
+- `context?` (`This` | `null` | `undefined`)
+  — the `this` context of the `chain` and `fail` callbacks
+- `fail?` ([`Fail<Next, Error, This>`][fail] | `null` | `undefined`)
+  — the callback to fire when a failure occurs. failures include:
+  - rejections of the input [*thenable*][thenable]
+  - rejections returned from `chain`
+  - synchronous errors thrown in `chain`\
+    if no `fail` handler is provided, failures are re-thrown or re-propagated.
+  > 👉 **note**: for thenables, this callback is passed to `then` as the `onrejected` parameter,
+  > and if implemented, to `catch` as well to prevent unhandled rejections.
 
 ## Glossary
 
@@ -529,11 +618,14 @@ A synchronous or [*thenable*][thenable] value.
 
 ### *thenable*
 
-An object or function with a `.then` method.
+An object or function with a `then` method.
 
 JavaScript engines use duck-typing for promises.
-Structures with a `.then` method will be treated as promise-like objects, and work with built-in mechanisms
-like [`Promise.resolve`][promise-resolve] and the [`await` keyword][await] like native promises.
+Arrays, functions, and objects with a `then` method will be treated as promise-like objects, and work with built-in
+mechanisms like [`Promise.resolve`][promise-resolve] and the [`await` keyword][await] like native promises.
+
+Some thenables also implement a `catch` method (like native promises).
+When available, `when` uses it to ensure rejections are handled.
 
 ## Project
 
@@ -548,25 +640,36 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 This project has a [code of conduct](./CODE_OF_CONDUCT.md).
 By interacting with this repository, organization, or community you agree to abide by its terms.
 
+### Sponsor
+
+This package is intentionally small — and intentionally maintained.
+
+Small primitives power larger systems.
+Support long-term stability by sponsoring Flex Development.
+
 [await]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/await
+
+[awaitable-term]: #awaitable
 
 [awaitable]: #awaitablet
 
-[chain]: #chaint-next-args-self
+[chain]: #chaint-next-args-this
 
 [esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
 
 [esmsh]: https://esm.sh
 
-[isthenable]: #isthenabletvalue
+[fail]: #failnext-error-this
 
 [ispromise]: #ispromisetvalue
 
-[options]: #optionst-next-args-self
+[isthenable]: #isthenabletvalue
+
+[options]: #optionst-next-failure-args-error-this
 
 [promise-resolve]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
 
-[reject]: #rejectnext-fail-self
+[promise-then]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
 
 [semver]: https://semver.org
 
@@ -574,6 +677,6 @@ By interacting with this repository, organization, or community you agree to abi
 
 [typescript]: https://www.typescriptlang.org
 
-[when]: #whent-next-args-selfvalue-chain-reject-context-args
+[when]: #whent-next-failure-args-error-thisvalue-chain-fail-context-args
 
 [yarn]: https://yarnpkg.com

@@ -178,7 +178,7 @@ repository:
   automated_security_fixes: true
   default_branch: main
   delete_branch_on_merge: true
-  description: .then for synchronous values and thenables
+  description: .then for synchronous values and thenables without forcing microtasks
   has_issues: true
   has_projects: true
   has_wiki: false

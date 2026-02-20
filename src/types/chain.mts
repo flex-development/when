@@ -16,23 +16,23 @@ import type { Awaitable } from '@flex-development/when'
  *  The next resolved value
  * @template {ReadonlyArray<any>} [Args=any[]]
  *  The function arguments
- * @template {any} [Self=unknown]
+ * @template {any} [This=unknown]
  *  The `this` context
  *
- * @this {Self}
+ * @this {This}
  *
  * @param {[...Args, T]} params
  *  The function parameters, with the last being the previously resolved value.\
  *  In cases where a promise is not being resolved,
  *  this is the same `value` passed to `when`
  * @return {Awaitable<Next>}
- *  The next promise or value
+ *  The next awaitable
  */
 type Chain<
   T = any,
   Next = any,
   Args extends readonly any[] = any[],
-  Self = unknown
-> = (this: Self, ...params: [...Args, T]) => Awaitable<Next>
+  This = unknown
+> = (this: This, ...params: [...Args, T]) => Awaitable<Next>
 
 export type { Chain as default }

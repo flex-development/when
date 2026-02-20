@@ -3,7 +3,7 @@
  * @module when/interfaces/Options
  */
 
-import type { Chain, Reject } from '@flex-development/when'
+import type { Chain, Fail } from '@flex-development/when'
 
 /**
  * Options for chaining.
@@ -12,16 +12,22 @@ import type { Chain, Reject } from '@flex-development/when'
  *  The previously resolved value
  * @template {any} [Next=any]
  *  The next resolved value
+ * @template {any} [Failure=Next]
+ *  The next resolved value on failure
  * @template {ReadonlyArray<any>} [Args=any[]]
  *  The chain function arguments
- * @template {any} [Self=any]
+ * @template {any} [Error=any]
+ *  The error to possibly handle
+ * @template {any} [This=any]
  *  The `this` context
  */
 interface Options<
   T = any,
   Next = any,
+  Failure = Next,
   Args extends readonly any[] = any[],
-  Self = any
+  Error = any,
+  This = any
 > {
   /**
    * The arguments to pass to the {@linkcode chain} callback.
@@ -31,22 +37,41 @@ interface Options<
   /**
    * The chain callback.
    *
-   * @see {@linkcode Chain}
-   */
-  chain: Chain<T, Next, Args, Self>
-
-  /**
-   * The `this` context of the {@linkcode chain}
-   * and {@linkcode reject} callbacks.
-   */
-  context?: Self | null | undefined
-
-  /**
-   * The callback to fire when a promise is rejected or an error is thrown.
+   * > 👉 **Note**: For thenables, this callback is passed to `then` as
+   * > the `onfulfilled` parameter.
    *
-   * @see {@linkcode Reject}
+   * @see {@linkcode Chain}
+   * @see {@linkcode PromiseLike.then}
    */
-  reject?: Reject<Next, any, Self> | null | undefined
+  chain: Chain<T, Next, Args, This>
+
+  /**
+   * The `this` context of the {@linkcode chain} and {@linkcode fail} callbacks.
+   */
+  context?: This | null | undefined
+
+  /**
+   * The callback to fire when a failure occurs.
+   *
+   * Failures include:
+   *
+   * - Rejections of the input thenable
+   * - Rejections returned from {@linkcode chain}
+   * - Synchronous errors thrown in {@linkcode chain}
+   *
+   * If no `fail` handler is provided, failures are re-thrown or re-propagated.
+   *
+   * > 👉 **Note**: For thenables, this callback is passed to `then` as
+   * > the `onrejected` parameter, and if implemented, to `catch` as well
+   * > to prevent unhandled rejections.
+   *
+   * @see {@linkcode Fail}
+   * @see {@linkcode Promise.catch}
+   * @see {@linkcode PromiseLike.then}
+   *
+   * @since 2.0.0
+   */
+  fail?: Fail<Failure, Error, This> | null | undefined
 }
 
 export type { Options as default }

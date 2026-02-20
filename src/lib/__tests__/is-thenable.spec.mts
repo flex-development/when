@@ -16,6 +16,8 @@ describe('unit:lib/isThenable', () => {
   })
 
   it.each<Parameters<typeof testSubject>>([
+    [Object.assign([], { then: vi.fn() })],
+    [Object.assign(vi.fn(), { then: vi.fn() })],
     [new Promise(vi.fn())],
     [{ then: vi.fn() }]
   ])('should return `true` if `value` is a thenable (%#)', value => {

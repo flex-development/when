@@ -3,23 +3,24 @@
  * @module when/lib/when
  */
 
+import isPromise from '#lib/is-promise'
 import isThenable from '#lib/is-thenable'
 import type {
   Awaitable,
   Chain,
-  Options,
-  Reject
+  Fail,
+  Options
 } from '@flex-development/when'
 
 export default when
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not thenable.
+ * or immediately if `value` is not a thenable.
  *
  * @see {@linkcode Awaitable}
  * @see {@linkcode Chain}
- * @see {@linkcode Reject}
+ * @see {@linkcode Fail}
  *
  * @template {any} T
  *  The previously resolved value
@@ -27,41 +28,93 @@ export default when
  *  The next resolved value
  * @template {ReadonlyArray<any>} [Args=any[]]
  *  The chain function arguments
- * @template {any} [Self=any]
+ * @template {any} [This=any]
  *  The `this` context
  *
  * @this {void}
  *
  * @param {Awaitable<T>} value
- *  The promise or the resolved value
- * @param {Chain<T, Next, Args, Self>} chain
+ *  The current awaitable
+ * @param {Chain<T, Next, Args, This>} chain
  *  The chain callback
- * @param {Reject<Next, any, Self>} [reject]
- *  The callback to fire when a promise is rejected or an error is thrown
- * @param {Self | null | undefined} [context]
- *  The `this` context of the chain and error callbacks
+ * @param {null | undefined} [fail]
+ *  The callback to fire when a failure occurs
+ * @param {This | null | undefined} [context]
+ *  The `this` context of the chain and `fail` callbacks
  * @param {Args} args
  *  The arguments to pass to the chain callback
  * @return {Awaitable<Next>}
- *  The next promise or value
+ *  The next awaitable
  */
 function when<
   T,
   Next = any,
   Args extends any[] = any[],
-  Self = unknown
+  This = unknown
 >(
   this: void,
   value: Awaitable<T>,
-  chain: Chain<T, Next, Args, Self>,
-  reject?: Reject<Next, any, Self> | null | undefined,
-  context?: Self | null | undefined,
+  chain: Chain<T, Next, Args, This>,
+  fail?: null | undefined,
+  context?: This | null | undefined,
   ...args: Args
 ): Awaitable<Next>
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not thenable.
+ * or immediately if `value` is not a thenable.
+ *
+ * @see {@linkcode Awaitable}
+ * @see {@linkcode Chain}
+ * @see {@linkcode Fail}
+ *
+ * @template {any} T
+ *  The previously resolved value
+ * @template {any} [Next=any]
+ *  The next resolved value
+ * @template {any} [Failure=Next]
+ *  The next resolved value on failure
+ * @template {ReadonlyArray<any>} [Args=any[]]
+ *  The chain function arguments
+ * @template {any} [Error=any]
+ *  The error to possibly handle
+ * @template {any} [This=any]
+ *  The `this` context
+ *
+ * @this {void}
+ *
+ * @param {Awaitable<T>} value
+ *  The current awaitable
+ * @param {Chain<T, Next, Args, This>} chain
+ *  The chain callback
+ * @param {Fail<Failure, Error, This> | null | undefined} [fail]
+ *  The callback to fire when a failure occurs
+ * @param {This | null | undefined} [context]
+ *  The `this` context of the chain and `fail` callbacks
+ * @param {Args} args
+ *  The arguments to pass to the chain callback
+ * @return {Awaitable<Failure | Next>}
+ *  The next awaitable
+ */
+function when<
+  T,
+  Next = any,
+  Failure = Next,
+  Args extends any[] = any[],
+  Error = any,
+  This = unknown
+>(
+  this: void,
+  value: Awaitable<T>,
+  chain: Chain<T, Next, Args, This>,
+  fail?: Fail<Failure, Error, This> | null | undefined,
+  context?: This | null | undefined,
+  ...args: Args
+): Awaitable<Failure | Next>
+
+/**
+ * Chain a callback, calling the function after `value` is resolved,
+ * or immediately if `value` is not a thenable.
  *
  * @see {@linkcode Awaitable}
  * @see {@linkcode Options}
@@ -70,64 +123,70 @@ function when<
  *  The previously resolved value
  * @template {any} [Next=any]
  *  The next resolved value
+ * @template {any} [Failure=Next]
+ *  The next resolved value on failure
  * @template {ReadonlyArray<any>} [Args=any[]]
  *  The chain function arguments
- * @template {any} [Self=unknown]
+ * @template {any} [Error=any]
+ *  The error to possibly handle
+ * @template {any} [This=unknown]
  *  The `this` context
  *
  * @this {void}
  *
  * @param {Awaitable<T>} value
- *  The promise or the resolved value
- * @param {Options<T, Next, Args, Self>} chain
+ *  The current awaitable
+ * @param {Options<T, Next, Failure, Args, Error, This>} chain
  *  Options for chaining
- * @return {Awaitable<Next>}
- *  The next promise or value
+ * @return {Awaitable<Failure | Next>}
+ *  The next awaitable
  */
 function when<
   T,
   Next = any,
+  Failure = Next,
   Args extends any[] = any[],
-  Self = unknown
+  Error = any,
+  This = unknown
 >(
   this: void,
   value: Awaitable<T>,
-  chain: Options<T, Next, Args, Self>
-): Awaitable<Next>
+  chain: Options<T, Next, Failure, Args, Error, This>
+): Awaitable<Failure | Next>
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
- * or immediately if `value` is not thenable.
+ * or immediately if `value` is not a thenable.
  *
  * @see {@linkcode Chain}
  * @see {@linkcode Options}
- * @see {@linkcode Reject}
+ * @see {@linkcode Fail}
  *
  * @this {void}
  *
  * @param {unknown} value
- *  The promise or the resolved value
+ *  The current awaitable
  * @param {Chain<any, unknown> | Options} chain
  *  The chain callback or options for chaining
- * @param {Reject | null | undefined} [reject]
- *  The callback to fire when a promise is rejected or an error is thrown
+ * @param {Fail | null | undefined} [fail]
+ *  The callback to fire when a failure occurs
  * @param {unknown} [context]
- *  The `this` context of the chain and error callbacks
+ *  The `this` context of the chain and `fail` callbacks
  * @param {unknown[]} args
  *  The arguments to pass to the chain callback
  * @return {unknown}
- *  The next promise or value
+ *  The next awaitable
  */
 function when(
   this: void,
   value: unknown,
   chain: Chain<any, unknown> | Options,
-  reject?: Reject | null | undefined,
+  fail?: Fail | null | undefined,
   context?: unknown,
   ...args: unknown[]
 ): unknown {
   if (typeof chain === 'object') {
-    reject = chain.reject
+    fail = chain.fail
     context = chain.context
     args = chain.args ?? []
     chain = chain.chain
@@ -136,14 +195,18 @@ function when(
   // no promise, call chain function immediately.
   if (!isThenable(value)) {
     try {
-      return chain.call(context, ...args, value)
+      // try attaching "global" rejection handler with `catch`.
+      return katch(chain.call(context, ...args, value))
     } catch (e: unknown) {
-      return fail(e)
+      return failure(e)
     }
   }
 
-  // already have a promise, chain callback.
-  return value.then(resolved => chain.call(context, ...args, resolved), fail)
+  // already have a promise, chain the chain callback.
+  value = value.then(res => chain.call(context, ...args, res), failure)
+
+  // try attaching "global" rejection handler with `catch`.
+  return katch(value)
 
   /**
    * @this {void}
@@ -154,8 +217,23 @@ function when(
    *  The rejection result
    * @throws {unknown}
    */
-  function fail(this: void, e: unknown): unknown {
-    if (typeof reject !== 'function') throw e
-    return reject.call(context, e)
+  function failure(this: void, e: unknown): unknown {
+    if (typeof fail !== 'function') throw e
+    return fail.call(context, e)
+  }
+
+  /**
+   * Try attaching a rejection handler with `catch`.
+   *
+   * @this {void}
+   *
+   * @param {unknown} value
+   *  The awaitable
+   * @return {unknown}
+   *  The `value`
+   */
+  function katch(this: void, value: unknown): unknown {
+    if (isPromise(value)) value = value.catch(failure)
+    return value
   }
 }

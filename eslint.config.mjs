@@ -17,7 +17,8 @@ const config = [
   {
     files: [
       'src/lib/__tests__/is-promise.spec.mts',
-      'src/lib/__tests__/is-thenable.spec.mts'
+      'src/lib/__tests__/is-thenable.spec.mts',
+      'src/lib/__tests__/when.spec.mts'
     ],
     rules: {
       'unicorn/no-thenable': 0

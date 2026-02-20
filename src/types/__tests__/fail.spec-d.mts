@@ -1,19 +1,19 @@
 /**
- * @file Type Tests - Reject
- * @module when/types/tests/unit-d/Reject
+ * @file Type Tests - Fail
+ * @module when/types/tests/unit-d/Fail
  */
 
-import type TestSubject from '#types/reject'
+import type TestSubject from '#types/fail'
 import type { Awaitable } from '@flex-development/when'
 
-describe('unit-d:types/Reject', () => {
-  type Next = URL | null
+describe('unit-d:types/Fail', () => {
   type Fail = Error
-  type Self = { ignoreErrors?: boolean | null | undefined }
-  type Subject = TestSubject<Next, Fail, Self>
+  type Next = URL | null
+  type This = { ignoreErrors?: boolean | null | undefined }
+  type Subject = TestSubject<Next, Fail, This>
 
-  it('should match [this: Self]', () => {
-    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<Self>()
+  it('should match [this: This]', () => {
+    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<This>()
   })
 
   describe('parameters', () => {

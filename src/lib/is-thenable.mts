@@ -4,7 +4,8 @@
  */
 
 /**
- * Check if `value` looks like a thenable.
+ * Check if `value` looks like a thenable,
+ * i.e. a {@linkcode PromiseLike} object.
  *
  * @template {any} T
  *  The resolved value
@@ -14,16 +15,13 @@
  * @param {unknown} value
  *  The thing to check
  * @return {value is PromiseLike<T>}
- *  `true` if `value` is a thenable, `false` otherwise
+ *  `true` if `value` is an object or function with a `then` method,
+ *  `false` otherwise
  */
 function isThenable<T>(this: void, value: unknown): value is PromiseLike<T> {
-  return (
-    !Array.isArray(value) &&
-    typeof value === 'object' &&
-    value !== null &&
-    'then' in value &&
-    typeof value.then === 'function'
-  )
+  if (!value) return false
+  if (typeof value !== 'function' && typeof value !== 'object') return false
+  return 'then' in value && typeof value.then === 'function'
 }
 
 export default isThenable

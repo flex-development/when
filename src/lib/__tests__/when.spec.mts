@@ -10,9 +10,14 @@ import type { Mock } from 'vitest'
 
 describe('unit:lib/when', () => {
   let chain: Mock<Chain<null, undefined>>
+  let then: PromiseLike<null>['then']
 
   beforeEach(() => {
     chain = vi.fn().mockName('chain')
+
+    then = vi.fn().mockName('then').mockImplementation(() => {
+      return { then: vi.fn().mockResolvedValue(null) }
+    })
   })
 
   it('should return non-thenable if `value` is non-thenable', () => {
@@ -21,7 +26,7 @@ describe('unit:lib/when', () => {
 
   it('should return thenable if `value` is thenable', () => {
     // Arrange
-    const value: Promise<null> = new Promise(resolve => resolve(null))
+    const value: PromiseLike<null> = { then }
 
     // Act
     const result = testSubject(value, chain)

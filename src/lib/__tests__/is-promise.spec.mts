@@ -10,11 +10,16 @@ describe('unit:lib/isPromise', () => {
     [null],
     [{ then: vi.fn() }],
     [{ catch: null, then: vi.fn() }]
-  ])('should return `false` if `value` is not a promise (%#)', value => {
+  ])('should return `false` if `value` cannot be a promise (%#)', value => {
     expect(testSubject(value)).to.be.false
   })
 
-  it('should return `true` if `value` is a promise', () => {
-    expect(testSubject(new Promise(vi.fn()))).to.be.true
+  it.each<Parameters<typeof testSubject>>([
+    [Object.assign([], { catch: vi.fn(), then: vi.fn() })],
+    [Object.assign(vi.fn(), { catch: vi.fn(), then: vi.fn() })],
+    [new Promise(vi.fn())],
+    [{ catch: vi.fn(), then: vi.fn() }]
+  ])('should return `true` if `value` looks like a promise (%#)', value => {
+    expect(testSubject(value)).to.be.true
   })
 })

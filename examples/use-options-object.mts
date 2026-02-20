@@ -26,7 +26,7 @@ const result: Awaitable<number | undefined> = when(value, {
   args: [39],
   chain: divide,
   context: { errors: [] },
-  reject
+  fail
 })
 
 console.dir(await result) // 13
@@ -52,6 +52,6 @@ function divide(this: void, dividend: number, divisor: number): number {
  *  The error to handle
  * @return {undefined}
  */
-function reject(this: Context, e: Error): undefined {
+function fail(this: Context, e: Error): undefined {
   return void this.errors.push(e)
 }

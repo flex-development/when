@@ -11,11 +11,11 @@ describe('unit-d:types/Chain', () => {
   type T = JsonValue
   type Next = string
   type Args = [URL, URL]
-  type Self = { ignoreErrors?: boolean | null | undefined }
-  type Subject = TestSubject<T, Next, Args, Self>
+  type This = { ignoreErrors?: boolean | null | undefined }
+  type Subject = TestSubject<T, Next, Args, This>
 
-  it('should match [this: Self]', () => {
-    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<Self>()
+  it('should match [this: This]', () => {
+    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<This>()
   })
 
   describe('parameters', () => {
