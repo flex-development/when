@@ -3,7 +3,7 @@
  * @module when/lib/when
  */
 
-import isPromise from '#lib/is-promise'
+import isCatchable from '#lib/is-catchable'
 import isThenable from '#lib/is-thenable'
 import type {
   Awaitable,
@@ -30,6 +30,8 @@ export default when
  *  The chain function arguments
  * @template {any} [This=any]
  *  The `this` context
+ * @template {Awaitable<Next>} [Result=Awaitable<Next>]
+ *  The next awaitable
  *
  * @this {void}
  *
@@ -43,14 +45,15 @@ export default when
  *  The `this` context of the chain and `fail` callbacks
  * @param {Args} args
  *  The arguments to pass to the chain callback
- * @return {Awaitable<Next>}
+ * @return {Result}
  *  The next awaitable
  */
 function when<
   T,
   Next = any,
   Args extends any[] = any[],
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Next> = Awaitable<Next>
 >(
   this: void,
   value: Awaitable<T>,
@@ -58,7 +61,7 @@ function when<
   fail?: null | undefined,
   context?: This | null | undefined,
   ...args: Args
-): Awaitable<Next>
+): Result
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
@@ -80,6 +83,8 @@ function when<
  *  The error to possibly handle
  * @template {any} [This=any]
  *  The `this` context
+ * @template {Awaitable<Failure | Next>} [Result=Awaitable<Failure | Next>]
+ *  The next awaitable
  *
  * @this {void}
  *
@@ -93,7 +98,7 @@ function when<
  *  The `this` context of the chain and `fail` callbacks
  * @param {Args} args
  *  The arguments to pass to the chain callback
- * @return {Awaitable<Failure | Next>}
+ * @return {Result}
  *  The next awaitable
  */
 function when<
@@ -102,7 +107,8 @@ function when<
   Failure = Next,
   Args extends any[] = any[],
   Error = any,
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Failure | Next> = Awaitable<Failure | Next>
 >(
   this: void,
   value: Awaitable<T>,
@@ -110,7 +116,7 @@ function when<
   fail?: Fail<Failure, Error, This> | null | undefined,
   context?: This | null | undefined,
   ...args: Args
-): Awaitable<Failure | Next>
+): Result
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
@@ -131,6 +137,8 @@ function when<
  *  The error to possibly handle
  * @template {any} [This=unknown]
  *  The `this` context
+ * @template {Awaitable<Failure | Next>} [Result=Awaitable<Failure | Next>]
+ *  The next awaitable
  *
  * @this {void}
  *
@@ -138,7 +146,7 @@ function when<
  *  The current awaitable
  * @param {Options<T, Next, Failure, Args, Error, This>} chain
  *  Options for chaining
- * @return {Awaitable<Failure | Next>}
+ * @return {Result}
  *  The next awaitable
  */
 function when<
@@ -147,12 +155,13 @@ function when<
   Failure = Next,
   Args extends any[] = any[],
   Error = any,
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Failure | Next> = Awaitable<Failure | Next>
 >(
   this: void,
   value: Awaitable<T>,
   chain: Options<T, Next, Failure, Args, Error, This>
-): Awaitable<Failure | Next>
+): Result
 
 /**
  * Chain a callback, calling the function after `value` is resolved,
@@ -233,7 +242,7 @@ function when(
    *  The `value`
    */
   function katch(this: void, value: unknown): unknown {
-    if (isPromise(value)) value = value.catch(failure)
+    if (isCatchable(value)) value = value.catch(failure)
     return value
   }
 }

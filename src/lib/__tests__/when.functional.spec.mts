@@ -81,7 +81,7 @@ describe('functional:lib/when', () => {
       chain.mockImplementationOnce(thrower)
 
       // Act + Expect
-      expect(() => testSubject(failure, { chain })).to.throw()
+      expect((): undefined => testSubject(failure, { chain })).to.throw()
     })
   })
 

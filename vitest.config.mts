@@ -79,10 +79,9 @@ function config(this: void, env: ConfigEnv): ViteUserConfig {
         'edge-runtime' as const,
         'happy-dom' as const
       ].map((environment, groupOrder) => ({
-        extends: true,
+        extends: true as const,
         resolve: {
-          conditions: tsconfig.compilerOptions.customConditions,
-          preserveSymlinks: true
+          conditions: tsconfig.compilerOptions.customConditions
         },
         ssr: {
           resolve: {

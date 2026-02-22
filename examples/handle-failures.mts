@@ -3,7 +3,7 @@
  * @module examples/handle-failures
  */
 
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The thenable value.
@@ -17,9 +17,9 @@ const value: PromiseLike<never> = new Promise((resolve, reject) => {
 /**
  * The result.
  *
- * @const {Awaitable<boolean>} result
+ * @const {Promise<boolean>} result
  */
-const result: Awaitable<boolean> = when(value, chain, fail)
+const result: Promise<boolean> = when(value, chain, fail)
 
 console.dir(await result) // false
 

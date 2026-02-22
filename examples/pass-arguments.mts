@@ -3,14 +3,14 @@
  * @module examples/pass-arguments
  */
 
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The result.
  *
- * @const {Awaitable<number>} result
+ * @const {number} result
  */
-const result: Awaitable<number> = when(
+const result: number = when(
   1, // last argument passed to `Math.min`
   Math.min, // `chain`
   null, // `fail`

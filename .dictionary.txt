@@ -4,6 +4,7 @@ commitlintrc
 dedupe
 devlop
 fbca
+finalizable
 gpgsign
 hmarr
 jchen

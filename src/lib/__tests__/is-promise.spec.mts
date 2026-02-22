@@ -8,18 +8,24 @@ import testSubject from '#lib/is-promise'
 describe('unit:lib/isPromise', () => {
   it.each<Parameters<typeof testSubject>>([
     [null],
-    [{ then: vi.fn() }],
-    [{ catch: null, then: vi.fn() }]
-  ])('should return `false` if `value` cannot be a promise (%#)', value => {
-    expect(testSubject(value)).to.be.false
+    [{ catch: null, then: vi.fn() }],
+    [{ catch: vi.fn(), finally: {}, then: vi.fn() }],
+    [{ then: vi.fn() }, false]
+  ])('should return `false` if `value` cannot be a promise (%#)', (
+    value,
+    finalizable
+  ) => {
+    expect(testSubject(value, finalizable)).to.be.false
   })
 
   it.each<Parameters<typeof testSubject>>([
-    [Object.assign([], { catch: vi.fn(), then: vi.fn() })],
-    [Object.assign(vi.fn(), { catch: vi.fn(), then: vi.fn() })],
     [new Promise(vi.fn())],
-    [{ catch: vi.fn(), then: vi.fn() }]
-  ])('should return `true` if `value` looks like a promise (%#)', value => {
-    expect(testSubject(value)).to.be.true
+    [{ catch: vi.fn(), finally: vi.fn(), then: vi.fn() }, null],
+    [{ catch: vi.fn(), then: vi.fn() }, false]
+  ])('should return `true` if `value` looks like a promise (%#)', (
+    value,
+    finalizable
+  ) => {
+    expect(testSubject(value, finalizable)).to.be.true
   })
 })

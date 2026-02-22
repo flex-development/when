@@ -28,15 +28,31 @@ like `.then`, but for synchronous values *and* thenables.
   - [Handle failures](#handle-failures)
   - [Bind `this` context](#bind-this-context)
   - [Use an options object](#use-an-options-object)
+  - [Integrate with `@typescript-eslint`](#integrate-with-typescript-eslint)
 - [API](#api)
-  - [`isPromise<T>(value)`][ispromise]
+  - [`isCatchable<T>(value)`][iscatchable]
+  - [`isFinalizable<T>(value)`][isfinalizable]
+  - [`isPromise<T>(value[, finalizable])`][ispromise]
+  - [`isPromiseLike<T>(value)`][ispromiselike]
   - [`isThenable<T>(value)`][isthenable]
-  - [`when<T[, Next][, Failure][, Args][, Error][, This]>(value, chain[, reject][, context][, ...args])`][when]
+  <!--lint disable-->
+  - [`when<T[, Next][, Failure][, Args][, Error][, This][, Result]>(value, chain[, fail][, context][, ...args])`][when]
+  <!--lint enable-->
 - [Types](#types)
   - [`Awaitable<T>`][awaitable]
+  - [`Catch<[T][, Reason]>`][catch]
+  - [`Catchable<[T]>`][catchable]
   - [`Chain<[T][, Next][, Args][, This]>`][chain]
   - [`Fail<[Next][, Error][, This]>`][fail]
+  - [`Finalizable<[T]>`][finalizable]
+  - [`Finally<[T]>`][finally]
+  - [`OnFinally`][onfinally]
+  - [`OnFulfilled<T[, Next]>`][onfulfilled]
+  - [`OnRejected<Next[, Reason]>`][onrejected]
   - [`Options<[T][, Next][, Failure][, Args][, Error][, This]>`][options]
+  - [`PromiseLike<T>`][promiselike]
+  - [`Then<[T][, Reason]>`][then]
+  - [`Thenable<[T]>`][thenable]
 - [Glossary](#glossary)
 - [Project](#project)
   - [Version](#version)
@@ -46,7 +62,7 @@ like `.then`, but for synchronous values *and* thenables.
 ## What is this?
 
 `when` is a tiny primitive for chaining callbacks
-onto [awaitables][awaitable] (synchronous or [*thenable*][thenable] values).
+onto [awaitables][awaitable] (synchronous or [*thenable*][thenable-term] values).
 
 For thenable values, `then` is used to invoke the callback after resolution. Otherwise, the callback fires immediately.
 This makes it easy to write one code path that supports both synchronous values and promises.
@@ -79,7 +95,7 @@ when(value, fn) // only a promise if `value` is a thenable, or `fn` returns one
 ### Design guarantees
 
 - Synchronous values remain synchronous
-- [*Thenable*s][thenable] are chained without wrapping in [`Promise.resolve`][promise-resolve]
+- [*Thenable*s][thenable-term] are chained without wrapping in [`Promise.resolve`][promise-resolve]
 - No additional microtasks are scheduled for non-thenables
 - Failures propagate unless a `fail` handler is provided
 - Returned thenables are preserved without additional wrapping
@@ -120,34 +136,34 @@ In browsers with [`esm.sh`][esmsh]:
 ### Chain a synchronous value
 
 ```ts
-import { isThenable, when, type Awaitable } from '@flex-development/when'
+import { isThenable, when } from '@flex-development/when'
 import { ok } from 'devlop'
 
 /**
  * The result.
  *
- * @const {Awaitable<number>} result
+ * @const {number} result
  */
-const result: Awaitable<number> = when(0, n => n + 1)
+const result: number = when(0, n => n + 1)
 
 ok(!isThenable(result), 'expected `result` to not be thenable')
 console.dir(result) // 1
 ```
 
-### Chain a [*thenable*][thenable]
+### Chain a [*thenable*][thenable-term]
 
 ```ts
-import { isThenable, when, type Awaitable } from '@flex-development/when'
+import { isPromise, when } from '@flex-development/when'
 import { ok } from 'devlop'
 
 /**
  * The result.
  *
- * @const {Awaitable<number>} result
+ * @const {Promise<number>} result
  */
-const result: Awaitable<number> = when(Promise.resolve(2), n => n + 1)
+const result: Promise<number> = when(Promise.resolve(2), n => n + 1)
 
-ok(isThenable(result), 'expected `result` to be thenable')
+ok(isPromise(result), 'expected `result` to be a promise')
 console.dir(await result) // 3
 ```
 
@@ -155,17 +171,17 @@ console.dir(await result) // 3
 
 When arguments are provided, they are passed to the `chain` callback first, followed by the resolved value.
 
-When the `value` passed to `when` is not [*thenable*][thenable], the resolved value is the same `value`.
+When the `value` passed to `when` is not a [*thenable*][thenable-term], the resolved value is the same `value`.
 
 ```ts
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The result.
  *
- * @const {Awaitable<number>} result
+ * @const {number} result
  */
-const result: Awaitable<number> = when(
+const result: number = when(
   1, // last argument passed to `Math.min`
   Math.min, // `chain`
   null, // `fail`
@@ -180,11 +196,11 @@ console.dir(result) // 1
 
 ### Handle failures
 
-For [*thenable*s][thenable], the `fail` callback is passed to `then` as the `onrejected` parameter,
+For [*thenable*s][thenable-term], the `fail` callback is passed to `then` as the `onrejected` parameter,
 and if implemented, to `catch` as well to prevent unhandled rejections.
 
 ```ts
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The thenable value.
@@ -198,9 +214,9 @@ const value: PromiseLike<never> = new Promise((resolve, reject) => {
 /**
  * The result.
  *
- * @const {Awaitable<boolean>} result
+ * @const {Promise<boolean>} result
  */
-const result: Awaitable<boolean> = when(value, chain, fail)
+const result: Promise<boolean> = when(value, chain, fail)
 
 console.dir(await result) // false
 
@@ -230,7 +246,7 @@ function fail(this: void, e: Error): false {
 ### Bind `this` context
 
 ```ts
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The `this` context.
@@ -240,9 +256,9 @@ type Context = { prefix: string }
 /**
  * The result.
  *
- * @const {Awaitable<string>} result
+ * @const {string} result
  */
-const result: Awaitable<string> = when(13, id, null, { prefix: 'id:' })
+const result: string = when(13, id, null, { prefix: 'id:' })
 
 console.log(result) // 'id:13'
 
@@ -262,8 +278,6 @@ function id(this: Context, num: number | string): string {
 ### Use an options object
 
 ```ts
-import when, { type Awaitable } from '@flex-development/when'
-
 /**
  * The `this` context.
  */
@@ -279,9 +293,9 @@ const value: Promise<number> = new Promise(resolve => resolve(3))
 /**
  * The result.
  *
- * @const {Awaitable<number | undefined>} result
+ * @const {Promise<number | undefined>} result
  */
-const result: Awaitable<number | undefined> = when(value, {
+const result: Promise<number | undefined> = when(value, {
   args: [39],
   chain: divide,
   context: { errors: [] },
@@ -316,19 +330,106 @@ function fail(this: Context, e: Error): undefined {
 }
 ```
 
+### Integrate with [`@typescript-eslint`][typescript-eslint]
+
+```js
+/**
+ * The eslint configuration.
+ *
+ * @type {import('eslint').Linter.Config[]}
+ * @const config
+ */
+const config = [
+  {
+    files: ['**/*.+(cjs|cts|js|jsx|mjs|mts|ts|tsx)'],
+    rules: {
+      '@typescript-eslint/promise-function-async': [
+        2,
+        {
+          allowedPromiseNames: ['Thenable']
+        }
+      ]
+    }
+  }
+]
+
+export default config
+```
+
 ## API
 
 `when` exports the identifiers listed below.
 
 The default export is [`when`][when].
 
-### `isPromise<T>(value)`
+### `isCatchable<T>(value)`
+
+Check if `value` looks like a [`Thenable`][thenable] that can be caught.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+
+#### Returns
+
+([`value is Catchable<T>`][catchable])
+`true` if `value` is a [*thenable*][thenable-term] with a [`catch`][catch] method, `false` otherwise
+
+### `isFinalizable<T>(value)`
+
+Check if `value` looks like a [`Thenable`][thenable] that can be finalized.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+
+#### Returns
+
+([`value is Finalizable<T>`][finalizable])
+`true` if `value` is a [*thenable*][thenable-term] with a [`finally`][finally] method, `false` otherwise
+
+### `isPromise<T>(value[, finalizable])`
 
 Check if `value` looks like a `Promise`.
 
-> 👉 **Note**: This function intentionally performs a structural check instead of a brand check.
-> It does not rely on `instanceof Promise` or constructors, making it compatible with cross-realm promises
-> and custom thenables.
+> 👉 **Note**: This function intentionally performs structural checks instead of brand checks.
+> It does not rely on `instanceof Promise` or constructors, making it compatible with cross-realm
+> promises and custom thenables.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+#### Parameters
+
+- `value` (`unknown`)
+  — the thing to check
+- `finalizable` (`boolean` | `null` | `undefined`)
+  — whether a [`finally`][finally] method is required.\
+  when `false`, only [`then`][then] and [`catch`][catch] are checked
+
+#### Returns
+
+(`value is Promise<T>`)
+`true` if `value` is a [*thenable*][thenable-term] with a [`catch`][catch] method,
+and [`finally`][finally] method (if requested), `false` otherwise
+
+### `isPromiseLike<T>(value)`
+
+Check if `value` looks like a `PromiseLike` structure.
 
 #### Type Parameters
 
@@ -342,13 +443,12 @@ Check if `value` looks like a `Promise`.
 
 #### Returns
 
-(`value is Promise<T>`) `true` if `value` is a [*thenable*][thenable] with a `catch` method, `false` otherwise
+([`value is PromiseLike<T>`][promiselike])
+`true` if `value` is an object or function with a [`then`][then] method, `false` otherwise
 
 ### `isThenable<T>(value)`
 
-Check if `value` looks like a [*thenable*][thenable], i.e. a `PromiseLike` object.
-
-> 👉 **Note**: Also exported as `isPromiseLike`.
+Check if `value` looks like a [*thenable*][thenable-term].
 
 #### Type Parameters
 
@@ -362,16 +462,17 @@ Check if `value` looks like a [*thenable*][thenable], i.e. a `PromiseLike` objec
 
 #### Returns
 
-(`value is PromiseLike<T>`) `true` if `value` is an object or function with a `then` method, `false` otherwise
+([`value is Thenable<T>`][thenable]) `true` if `value` is an object or function with a [`then`][then] method,
+and maybe-callable methods [`catch`][catch] and/or [`finally`][finally], `false` otherwise
 
 <!--lint disable-->
 
-### `when<T[, Next][, Failure][, Args][, Error][, This]>(value, chain[, fail][, context][, ...args])`
+### `when<T[, Next][, Failure][, Args][, Error][, This][, Result]>(value, chain[, fail][, context][, ...args])`
 
 <!--lint enable-->
 
 Chain a callback, calling the function after `value` is resolved,
-or immediately if `value` is not a [*thenable*][thenable].
+or immediately if `value` is not a [*thenable*][thenable-term].
 
 #### Overloads
 
@@ -380,7 +481,8 @@ function when<
   T,
   Next = any,
   Args extends any[] = any[],
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Next> = Awaitable<Next>
 >(
   this: void,
   value: Awaitable<T>,
@@ -388,7 +490,7 @@ function when<
   fail?: null | undefined,
   context?: This | null | undefined,
   ...args: Args
-): Awaitable<Next>
+): Result
 ```
 
 ```ts
@@ -398,7 +500,8 @@ function when<
   Failure = Next,
   Args extends any[] = any[],
   Error = any,
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Failure | Next> = Awaitable<Failure | Next>
 >(
   this: void,
   value: Awaitable<T>,
@@ -406,7 +509,7 @@ function when<
   fail?: Fail<Failure, Error, This> | null | undefined,
   context?: This | null | undefined,
   ...args: Args
-): Awaitable<Failure | Next>
+): Result
 ```
 
 ```ts
@@ -416,12 +519,13 @@ function when<
   Failure = Next,
   Args extends any[] = any[],
   Error = any,
-  This = unknown
+  This = unknown,
+  Result extends Awaitable<Failure | Next> = Awaitable<Failure | Next>
 >(
   this: void,
   value: Awaitable<T>,
   chain: Options<T, Next, Failure, Args, Error, This>
-): Awaitable<Failure | Next>
+): Result
 ```
 
 #### Type Parameters
@@ -443,6 +547,9 @@ function when<
 - `This` (`any`, optional)
   — the `this` context
   - **default**: `unknown`
+- `Result` ([`Awaitable<Failure | Next>`][awaitable], optional)
+  — the next awaitable
+  - **default**: [`Awaitable<Failure | Next>`][awaitable]
 
 #### Parameters
 
@@ -452,7 +559,7 @@ function when<
   — the chain callback or options for chaining
 - `fail` ([`Fail<Failure, Error, This>`][fail] | `null` | `undefined`)
   — the callback to fire when a failure occurs. failures include:
-  - rejections of the input [*thenable*][thenable]
+  - rejections of the input [*thenable*][thenable-term]
   - rejections returned from `chain`
   - synchronous errors thrown in `chain`\
     if no `fail` handler is provided, failures are re-thrown or re-propagated.
@@ -473,16 +580,67 @@ This package is fully typed with [TypeScript][].
 
 ### `Awaitable<T>`
 
-A synchronous or [*thenable*][thenable] value (`type`).
+A synchronous or [*thenable*][thenable-term] value (`type`).
 
 ```ts
-type Awaitable<T> = PromiseLike<T> | T
+type Awaitable<T> = Thenable<T> | T
 ```
 
 #### Type Parameters
 
 - `T` (`any`)
   — the resolved value
+
+### `Catch<[T][, Reason]>`
+
+Attach a callback only for the rejection of a [`Thenable`][thenable] (`type`).
+
+```ts
+type Catch<T = unknown, Reason = any> = <Next = never>(
+  this: unknown,
+  onrejected?: OnRejected<Next, Reason> | null | undefined
+) => Thenable<Next | T>
+```
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `unknown`
+- `Reason` (`any`, optional)
+  — the reason for the rejection
+  - **default**: `any`
+- `Next` (`any`, optional)
+  — the next resolved value
+  - **default**: `never`
+
+#### Parameters
+
+- `onrejected` ([`OnRejected<Next, Reason>`][onrejected] | `null` | `undefined`)
+  — the callback to execute when the thenable is rejected
+
+#### Returns
+
+([`Thenable<Next | T>`][thenable]) The next [*thenable*][thenable-term]
+
+### `Catchable<[T]>`
+
+A [`Thenable`][thenable] that can be caught (`interface`).
+
+#### Extends
+
+- [`Thenable<T>`][thenable]
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `any`
+
+#### Properties
+
+- `catch` ([`Catch<T>`][catch])
+  — attach a callback only to be invoked on rejection
 
 ### `Chain<[T][, Next][, Args][, This]>`
 
@@ -557,6 +715,118 @@ type Fail<
 
 ([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
 
+### `Finalizable<[T]>`
+
+A [`Thenable`][thenable] that can be finalized (`interface`).
+
+#### Extends
+
+- [`Thenable<T>`][thenable]
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `any`
+
+#### Properties
+
+- `finally` ([`Finally<T>`][finally])
+  — attach a callback only to be invoked on settlement (fulfillment or rejection)
+  > 👉 **note**: the resolved value cannot be modified from the callback
+
+### `Finally<[T]>`
+
+Attach a callback that is invoked only when a [`Thenable`][thenable] is settled (fulfilled or rejected) (`type`).
+
+```ts
+type Finally<T = unknown> = (
+  this: unknown,
+  onfinally?: OnFinally | null | undefined
+) => Thenable<T>
+```
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `unknown`
+
+#### Parameters
+
+- `onfinally` ([`OnFinally`][onfinally] | `null` | `undefined`)
+  — the callback to execute when the thenable is settled
+
+#### Returns
+
+([`Thenable<T>`][thenable]) The next [*thenable*][thenable-term]
+
+### `OnFinally`
+
+The callback to execute when a [`Thenable`][thenable] is settled (fulfilled or rejected) (`type`).
+
+```ts
+type OnFinally = (this: unknown) => undefined | void
+```
+
+#### Returns
+
+(`undefined` | `void`) Nothing
+
+### `OnFulfilled<T[, Next]>`
+
+The callback to execute when a [`Thenable`][thenable] is resolved (`type`).
+
+```ts
+type OnFulfilled<T, Next = T> = (this: unknown, value: T) => Awaitable<Next>
+```
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+- `Next` (`any`, optional)
+  — the next resolved value
+  - **default**: `T`
+
+#### Parameters
+
+- `value` (`T`)
+  — the resolved value
+
+#### Returns
+
+([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
+
+### `OnRejected<Next[, Reason]>`
+
+The callback to execute when a [`Thenable`][thenable] is rejected (`type`).
+
+```ts
+type OnRejected<
+  Next,
+  Reason = any
+> = (this: unknown, reason: Reason) => Awaitable<Next>
+```
+
+#### Type Parameters
+
+- `Next` (`any`, optional)
+  — the next resolved value
+  - **default**: `any`
+- `Reason` (`any`, optional)
+  — the reason for the rejection
+  - **default**: `any`
+
+#### Parameters
+
+- `reason` (`Reason`)
+  — the reason for the rejection
+
+#### Returns
+
+([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
+
 ### `Options<[T][, Next][, Failure][, Args][, Error][, This]>`
 
 Options for chaining (`interface`).
@@ -603,29 +873,109 @@ interface Options<
   — the `this` context of the `chain` and `fail` callbacks
 - `fail?` ([`Fail<Next, Error, This>`][fail] | `null` | `undefined`)
   — the callback to fire when a failure occurs. failures include:
-  - rejections of the input [*thenable*][thenable]
+  - rejections of the input [*thenable*][thenable-term]
   - rejections returned from `chain`
   - synchronous errors thrown in `chain`\
     if no `fail` handler is provided, failures are re-thrown or re-propagated.
   > 👉 **note**: for thenables, this callback is passed to `then` as the `onrejected` parameter,
-  > and if implemented, to `catch` as well to prevent unhandled rejections.
+  > and if implemented, to [`catch`][catch] as well to prevent unhandled rejections.
+
+### `PromiseLike<T>`
+
+To ensure native `Promise` and `PromiseLike` are assignable to [`Thenable`][thenable],
+`when` ships a small global augmentation for `PromiseLike`.
+
+No new methods or overloads are introduced — the `then` signature is rewritten to match
+the official [TypeScript][] lib definition (as in `lib.es2015.d.ts`).
+
+This is required for both compatibility, and type inference when mixing `Thenable` with built-in promise types.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+
+### `Then<T[, Reason]>`
+
+Attach callbacks for the resolution and/or rejection of a [`Thenable`][thenable] (`type`).
+
+```ts
+type Then<T = unknown, Reason = any> = <Succ = T, Fail = never>(
+  this: unknown,
+  onfulfilled?: OnFulfilled<T, Succ> | null | undefined,
+  onrejected?: OnRejected<Fail, Reason> | null | undefined
+) => Thenable<Fail | Succ>
+```
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the previously resolved value
+  - **default**: `unknown`
+- `Reason` (`any`, optional)
+  — the reason for a rejection
+  - **default**: `any`
+- `Succ` (`any`, optional)
+  — the next resolved value on success
+  - **default**: `T`
+- `Fail` (`any`, optional)
+  — the next resolved value on failure
+  - **default**: `never`
+
+#### Parameters
+
+- `onfulfilled` ([`OnFulfilled<T, Succ>`][onfulfilled] | `null` | `undefined`)
+  — the callback to execute when the thenable is resolved
+- `onrejected` ([`OnRejected<Fail, Reason>`][onrejected] | `null` | `undefined`)
+  — the callback to execute when the thenable is rejected
+
+#### Returns
+
+([`Thenable<Fail | Succ>`][thenable]) The next [*thenable*][thenable-term]
+
+### `Thenable<[T]>`
+
+The completion of an asynchronous operation, and the minimal structural contract required
+by [`when`][when] to treat a value as asynchronous (`interface`).
+
+Unlike `PromiseLike`, this interface allows a maybe-callable [`catch`][catch] method, which when present,
+is used by [`when`][when] to ensure failures are handled without forcing promise allocation.
+
+Maybe-callable methods are named so because they are not required,
+and may be a method implementation, `null`, or `undefined`.
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `any`
+
+#### Properties
+
+- `catch?` ([`Catch<T>`][catch] | `null` | `undefined`)
+  — attach a callback only to be invoked on rejection
+- `then` ([`Then<T>`][then])
+  — attach callbacks to be invoked on resolution (fulfillment) and/or rejection
+- `finally?` ([`Finally<T>`][finally] | `null` | `undefined`)
+  — attach a callback only to be invoked on settlement (fulfillment or rejection)
+  > 👉 **note**: the resolved value cannot be modified from the callback
 
 ## Glossary
 
 ### *awaitable*
 
-A synchronous or [*thenable*][thenable] value.
+A synchronous or [*thenable*][thenable-term] value.
 
 ### *thenable*
 
-An object or function with a `then` method.
+An object or function with a [`then`][then] method.
 
 JavaScript engines use duck-typing for promises.
 Arrays, functions, and objects with a `then` method will be treated as promise-like objects, and work with built-in
 mechanisms like [`Promise.resolve`][promise-resolve] and the [`await` keyword][await] like native promises.
 
-Some thenables also implement a `catch` method (like native promises).
-When available, `when` uses it to ensure rejections are handled.
+Some thenables also implement a [`catch`][catch] method (like native promises).
+When available, [`when`][when] uses it to ensure rejections are handled.
 
 ## Project
 
@@ -653,6 +1003,10 @@ Support long-term stability by sponsoring Flex Development.
 
 [awaitable]: #awaitablet
 
+[catch]: #catcht-reason
+
+[catchable]: #catchablet
+
 [chain]: #chaint-next-args-this
 
 [esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
@@ -661,9 +1015,25 @@ Support long-term stability by sponsoring Flex Development.
 
 [fail]: #failnext-error-this
 
-[ispromise]: #ispromisetvalue
+[finalizable]: #finalizablet
+
+[finally]: #finallyt
+
+[iscatchable]: #iscatchabletvalue
+
+[isfinalizable]: #isfinalizabletvalue
+
+[ispromise]: #ispromisetvalue-finalizable
+
+[ispromiselike]: #ispromiseliketvalue
 
 [isthenable]: #isthenabletvalue
+
+[onfinally]: #onfinally
+
+[onfulfilled]: #onfulfilledt-next
+
+[onrejected]: #onrejectednext-reason
 
 [options]: #optionst-next-failure-args-error-this
 
@@ -671,12 +1041,20 @@ Support long-term stability by sponsoring Flex Development.
 
 [promise-then]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
 
+[promiselike]: #promiseliket
+
 [semver]: https://semver.org
 
-[thenable]: #thenable
+[then]: #thent-reason
+
+[thenable-term]: #thenable
+
+[thenable]: #thenablet
+
+[typescript-eslint]: https://typescript-eslint.io
 
 [typescript]: https://www.typescriptlang.org
 
-[when]: #whent-next-failure-args-error-thisvalue-chain-fail-context-args
+[when]: #whent-next-failure-args-error-this-resultvalue-chain-fail-context-args
 
 [yarn]: https://yarnpkg.com

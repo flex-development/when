@@ -3,7 +3,7 @@
  * @module examples/bind-this
  */
 
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The `this` context.
@@ -13,9 +13,9 @@ type Context = { prefix: string }
 /**
  * The result.
  *
- * @const {Awaitable<string>} result
+ * @const {string} result
  */
-const result: Awaitable<string> = when(13, id, null, { prefix: 'id:' })
+const result: string = when(13, id, null, { prefix: 'id:' })
 
 console.log(result) // 'id:13'
 

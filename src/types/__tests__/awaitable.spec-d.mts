@@ -4,6 +4,7 @@
  */
 
 import type TestSubject from '#types/awaitable'
+import type { Thenable } from '@flex-development/when'
 
 describe('unit-d:types/Awaitable', () => {
   type T = Uint8Array | string | null | undefined
@@ -13,8 +14,12 @@ describe('unit-d:types/Awaitable', () => {
     expectTypeOf<Promise<T>>().toExtend<Subject>()
   })
 
-  it('should extract PromiseLike<T>', () => {
-    expectTypeOf<Subject>().extract<PromiseLike<T>>().not.toBeNever()
+  it('should allow PromiseLike<T>', () => {
+    expectTypeOf<PromiseLike<T>>().toExtend<Subject>()
+  })
+
+  it('should extract Thenable<T>', () => {
+    expectTypeOf<Subject>().extract<Thenable<T>>().not.toBeNever()
   })
 
   it('should extract T', () => {

@@ -7,7 +7,7 @@
 import fldv from '@flex-development/eslint-config'
 
 /**
- * eslint configuration.
+ * The eslint configuration.
  *
  * @type {import('eslint').Linter.Config[]}
  * @const config
@@ -15,8 +15,28 @@ import fldv from '@flex-development/eslint-config'
 const config = [
   ...fldv.configs.node,
   {
+    files: ['**/*.+(cjs|cts|js|jsx|mjs|mts|ts|tsx)'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true
+      }
+    },
+    rules: {
+      '@typescript-eslint/promise-function-async': [
+        2,
+        {
+          allowedPromiseNames: ['Thenable']
+        }
+      ],
+      eqeqeq: [2, 'smart']
+    }
+  },
+  {
     files: [
+      'src/lib/__tests__/is-catchable.spec.mts',
+      'src/lib/__tests__/is-finalizable.spec.mts',
       'src/lib/__tests__/is-promise.spec.mts',
+      'src/lib/__tests__/is-promise-like.spec.mts',
       'src/lib/__tests__/is-thenable.spec.mts',
       'src/lib/__tests__/when.spec.mts'
     ],

@@ -3,7 +3,7 @@
  * @module examples/use-optionsObject
  */
 
-import when, { type Awaitable } from '@flex-development/when'
+import when from '@flex-development/when'
 
 /**
  * The `this` context.
@@ -20,9 +20,9 @@ const value: Promise<number> = new Promise(resolve => resolve(3))
 /**
  * The result.
  *
- * @const {Awaitable<number | undefined>} result
+ * @const {Promise<number | undefined>} result
  */
-const result: Awaitable<number | undefined> = when(value, {
+const result: Promise<number | undefined> = when(value, {
   args: [39],
   chain: divide,
   context: { errors: [] },
