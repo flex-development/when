@@ -3,7 +3,7 @@
  * @module when/interfaces/Options
  */
 
-import type { Chain, Fail } from '@flex-development/when'
+import type { Chain, Fail, Finish } from '@flex-development/when'
 
 /**
  * Options for chaining.
@@ -72,6 +72,19 @@ interface Options<
    * @since 2.0.0
    */
   fail?: Fail<Failure, Error, This> | null | undefined
+
+  /**
+   * The callback to invoke after chaining completes, whether the operation
+   * succeeds or fails.
+   *
+   * It runs exactly once after {@linkcode chain} and {@linkcode fail}, cannot
+   * affect the resolved value, and does not intercept errors.
+   *
+   * @see {@linkcode Finish}
+   *
+   * @since 3.0.0
+   */
+  finish?: Finish<This> | null | undefined
 }
 
 export type { Options as default }

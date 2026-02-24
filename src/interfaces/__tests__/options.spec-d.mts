@@ -5,7 +5,7 @@
 
 import type TestSubject from '#interfaces/options'
 import type { Nilable } from '@flex-development/tutils'
-import type { Chain, Fail } from '@flex-development/when'
+import type { Chain, Fail, Finish } from '@flex-development/when'
 
 describe('unit-d:interfaces/Options', () => {
   type T = URL | string
@@ -38,5 +38,11 @@ describe('unit-d:interfaces/Options', () => {
     expectTypeOf<Subject>()
       .toHaveProperty('fail')
       .toEqualTypeOf<Nilable<Fail<Failure, Error, This>>>()
+  })
+
+  it('should match [finish?: Finish<This> | null | undefined]', () => {
+    expectTypeOf<Subject>()
+      .toHaveProperty('finish')
+      .toEqualTypeOf<Nilable<Finish<This>>>()
   })
 })

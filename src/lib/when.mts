@@ -4,11 +4,13 @@
  */
 
 import isCatchable from '#lib/is-catchable'
+import isFinalizable from '#lib/is-finalizable'
 import isThenable from '#lib/is-thenable'
 import type {
   Awaitable,
   Chain,
   Fail,
+  Finish,
   Options
 } from '@flex-development/when'
 
@@ -194,28 +196,45 @@ function when(
   context?: unknown,
   ...args: unknown[]
 ): unknown {
+  /**
+   * The post-processing hook.
+   *
+   * @var {Finish | null | undefined}
+   */
+  let finish: Finish | null | undefined
+
+  /**
+   * Whether the post-processing hook ran.
+   *
+   * @var {boolean}
+   */
+  let finished: boolean = false
+
   if (typeof chain === 'object') {
     fail = chain.fail
+    finish = chain.finish
     context = chain.context
     args = chain.args ?? []
     chain = chain.chain
   }
 
-  // no promise, call chain function immediately.
+  // no thenable, call chain function immediately.
   if (!isThenable(value)) {
     try {
-      // try attaching "global" rejection handler with `catch`.
-      return katch(chain.call(context, ...args, value))
+      // try attaching "global" rejection handler with `catch`,
+      // then try running `finish`, or attaching it with `finally`.
+      return finalize(katch(chain.call(context, ...args, value)))
     } catch (e: unknown) {
-      return failure(e)
+      return finalize(katch(failure(e)))
     }
   }
 
-  // already have a promise, chain the chain callback.
+  // already have a thenable, chain the chain callback.
   value = value.then(res => chain.call(context, ...args, res), failure)
 
-  // try attaching "global" rejection handler with `catch`.
-  return katch(value)
+  // try attaching "global" rejection handler with `catch`,
+  // then try running `finish`, or attaching it with `finally`.
+  return finalize(katch(value))
 
   /**
    * @this {void}
@@ -223,12 +242,49 @@ function when(
    * @param {unknown} e
    *  The error to handle
    * @return {unknown}
-   *  The rejection result
-   * @throws {unknown}
+   *  The rejection result or never, may throw `e`
    */
   function failure(this: void, e: unknown): unknown {
-    if (typeof fail !== 'function') throw e
+    if (typeof fail !== 'function') return thrower(e)
     return fail.call(context, e)
+  }
+
+  /**
+   * @this {void}
+   *
+   * @return {undefined}
+   */
+  function fin(this: void): undefined {
+    return void (finished || (finished = true, finish?.call(context)))
+  }
+
+  /**
+   * @this {void}
+   *
+   * @param {unknown} value
+   *  The awaitable
+   * @return {unknown}
+   *  The `value`
+   */
+  function finalize(this: void, value: unknown): unknown {
+    if (typeof finish === 'function') {
+      if (isFinalizable(value)) return value.finally(fin)
+      if (isThenable(value)) return value.then(identity, thrower)
+    }
+
+    return identity(value)
+
+    /**
+     * @this {void}
+     *
+     * @param {unknown} value
+     *  The resolved value
+     * @return {unknown}
+     *  The `value`
+     */
+    function identity(this: void, value: unknown): unknown {
+      return fin(), value
+    }
   }
 
   /**
@@ -244,5 +300,19 @@ function when(
   function katch(this: void, value: unknown): unknown {
     if (isCatchable(value)) value = value.catch(failure)
     return value
+  }
+
+  /**
+   * @this {void}
+   *
+   * @param {unknown} e
+   *  The error to throw
+   * @return {never}
+   *  Never; throws `e`
+   * @throws {unknown}
+   */
+  function thrower(this: void, e: unknown): never {
+    void fin()
+    throw e
   }
 }

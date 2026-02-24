@@ -46,6 +46,7 @@ like `.then`, but for synchronous values *and* thenables.
   - [`Fail<[Next][, Error][, This]>`][fail]
   - [`Finalizable<[T]>`][finalizable]
   - [`Finally<[T]>`][finally]
+  - [`Finish<[This]>`][finish]
   - [`OnFinally`][onfinally]
   - [`OnFulfilled<T[, Next]>`][onfulfilled]
   - [`OnRejected<Next[, Reason]>`][onrejected]
@@ -761,6 +762,27 @@ type Finally<T = unknown> = (
 
 ([`Thenable<T>`][thenable]) The next [*thenable*][thenable-term]
 
+### `Finish<[This]>`
+
+A post-processing hook invoked exactly once after an [*awaitable*][awaitable-term] settles,
+regardless of success or failure (`type`).
+
+The resolved value cannot be modified from the hook, and any error is re-thrown after execution.
+
+```ts
+type Finish<This = unknown> = (this: This) => undefined | void
+```
+
+#### Type Parameters
+
+- `This` (`any`, optional)
+  — the `this` context
+  - **default**: `unknown`
+
+#### Returns
+
+(`undefined` | `void`) Nothing
+
 ### `OnFinally`
 
 The callback to execute when a [`Thenable`][thenable] is settled (fulfilled or rejected) (`type`).
@@ -879,6 +901,9 @@ interface Options<
     if no `fail` handler is provided, failures are re-thrown or re-propagated.
   > 👉 **note**: for thenables, this callback is passed to `then` as the `onrejected` parameter,
   > and if implemented, to [`catch`][catch] as well to prevent unhandled rejections.
+- `finish?` ([`Finish<This>`][finish] | `null` | `undefined`)
+  — the callback to invoke after chaining completes, whether the operation succeeds or fails.\
+  it runs exactly once after `chain` and `fail`, cannot affect the resolved value, and does not intercept errors
 
 ### `PromiseLike<T>`
 
@@ -1018,6 +1043,8 @@ Support long-term stability by sponsoring Flex Development.
 [finalizable]: #finalizablet
 
 [finally]: #finallyt
+
+[finish]: #finishthis
 
 [iscatchable]: #iscatchabletvalue
 
