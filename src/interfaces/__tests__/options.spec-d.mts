@@ -1,6 +1,6 @@
 /**
  * @file Type Tests - Options
- * @module when/types/tests/unit-d/Options
+ * @module when/interfaces/tests/unit-d/Options
  */
 
 import type TestSubject from '#interfaces/options'

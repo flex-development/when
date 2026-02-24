@@ -3,26 +3,69 @@
  * @module config/rollup
  */
 
-import nodeResolve from '@rollup/plugin-node-resolve'
-import type { RollupOptions } from 'rollup'
+import resolve from '@rollup/plugin-node-resolve'
+import type {
+  NormalizedOutputOptions,
+  OutputBundle,
+  PluginContext,
+  RollupOptions
+} from 'rollup'
 import { dts } from 'rollup-plugin-dts'
+import pkg from './package.json' with { type: 'json' }
 
 /**
- * The target file.
+ * The list of target files.
  *
- * @const {string} file
+ * @const {ReadonlyArray<string>} files
  */
-const file: string = './dist/index.d.mts'
+const files: readonly string[] = [
+  './dist/index.d.mts',
+  './dist/testing/index.d.mts'
+]
 
 /**
  * The rollup configuration.
  *
  * @see {@linkcode RollupOptions}
  *
- * @type {RollupOptions}
+ * @type {RollupOptions[]}
  */
-export default {
+export default files.map(file => ({
+  external: file.includes('testing') ? [pkg.name] : undefined,
   input: file,
   output: [{ file, format: 'esm' }],
-  plugins: [nodeResolve({ extensions: ['.d.mts', '.mts'] }), dts()]
-}
+  plugins: [
+    resolve({ extensions: ['.d.mts', '.mts'] }),
+    dts(),
+    {
+      /**
+       * Re-add lost `type` modifiers.
+       *
+       * The {@linkcode dts} plugin loses `type` modifiers during bundling.
+       *
+       * @see https://github.com/Swatinem/rollup-plugin-dts/issues/354
+       *
+       * @this {PluginContext}
+       *
+       * @param {NormalizedOutputOptions} options
+       *  The normalized output options
+       * @param {OutputBundle} bundle
+       *  The output bundle object
+       * @return {undefined}
+       */
+      generateBundle(
+        this: PluginContext,
+        options: NormalizedOutputOptions,
+        bundle: OutputBundle
+      ): undefined {
+        for (const output of Object.values(bundle)) {
+          if (output.type === 'chunk') {
+            output.code = output.code.replaceAll('import {', 'import type {')
+          }
+        }
+
+        return void this
+      }
+    }
+  ]
+}))

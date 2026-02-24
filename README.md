@@ -597,7 +597,7 @@ Attach a callback only for the rejection of a [`Thenable`][thenable] (`type`).
 
 ```ts
 type Catch<T = unknown, Reason = any> = <Next = never>(
-  this: unknown,
+  this: any,
   onrejected?: OnRejected<Next, Reason> | null | undefined
 ) => Thenable<Next | T>
 ```
@@ -741,7 +741,7 @@ Attach a callback that is invoked only when a [`Thenable`][thenable] is settled 
 
 ```ts
 type Finally<T = unknown> = (
-  this: unknown,
+  this: any,
   onfinally?: OnFinally | null | undefined
 ) => Thenable<T>
 ```
@@ -901,7 +901,7 @@ Attach callbacks for the resolution and/or rejection of a [`Thenable`][thenable]
 
 ```ts
 type Then<T = unknown, Reason = any> = <Succ = T, Fail = never>(
-  this: unknown,
+  this: any,
   onfulfilled?: OnFulfilled<T, Succ> | null | undefined,
   onrejected?: OnRejected<Fail, Reason> | null | undefined
 ) => Thenable<Fail | Succ>

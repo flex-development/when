@@ -1472,6 +1472,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:10.3.0":
+  version: 10.3.0
+  resolution: "@faker-js/faker@npm:10.3.0"
+  checksum: 10/ae06502156d918beed43bc939ad4a2b2b4696c5335ac6cfa52290cee23ffbcc4967c69a149118b3ec5c44d8cd7da690851fea4a93467e02d91b5281e3a6a8b60
+  languageName: node
+  linkType: hard
+
 "@flex-development/aggregate-error-ponyfill@npm:3.1.1":
   version: 3.1.1
   resolution: "@flex-development/aggregate-error-ponyfill@npm:3.1.1"
@@ -2059,6 +2066,7 @@ __metadata:
     "@commitlint/cli": "npm:20.4.2"
     "@commitlint/types": "npm:20.4.0"
     "@edge-runtime/vm": "npm:5.0.0"
+    "@faker-js/faker": "npm:10.3.0"
     "@flex-development/commitlint-config": "npm:1.0.1"
     "@flex-development/eslint-config": "npm:1.1.1"
     "@flex-development/grease": "npm:3.0.0-alpha.9"

@@ -45,9 +45,22 @@ const config = [
     }
   },
   {
-    files: ['src/lib/when.mts'],
+    files: [
+      'src/lib/when.mts',
+      'src/testing/lib/__tests__/create-thenable.functional.spec.mts'
+    ],
     rules: {
       'promise/prefer-await-to-then': 0
+    }
+  },
+  {
+    files: ['src/testing/lib/create-thenable.mts'],
+    rules: {
+      '@typescript-eslint/only-throw-error': 0,
+      '@typescript-eslint/promise-function-async': 0,
+      'promise/prefer-await-to-then': 0,
+      'unicorn/catch-error-name': 0,
+      'unicorn/no-thenable': 0
     }
   },
   {

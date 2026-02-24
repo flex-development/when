@@ -11,8 +11,8 @@ describe('unit-d:types/Finally', () => {
   type T = JsonValue
   type Subject = TestSubject<T>
 
-  it('should match [this: unknown]', () => {
-    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<unknown>()
+  it('should match [this: any]', () => {
+    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<any>()
   })
 
   describe('parameters', () => {

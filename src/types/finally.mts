@@ -17,7 +17,7 @@ import type { OnFinally, Thenable } from '@flex-development/when'
  * @template {any} [T=unknown]
  *  The resolved value
  *
- * @this {unknown}
+ * @this {any}
  *
  * @param {OnFinally | null | undefined} [onfinally]
  *  The callback to execute when the thenable is settled
@@ -25,7 +25,7 @@ import type { OnFinally, Thenable } from '@flex-development/when'
  *  The next thenable
  */
 type Finally<T = unknown> = (
-  this: unknown,
+  this: any,
   onfinally?: OnFinally | null | undefined
 ) => Thenable<T>
 

@@ -1,6 +1,6 @@
 /**
  * @file Type Tests - Thenable
- * @module when/types/tests/unit-d/Thenable
+ * @module when/interfaces/tests/unit-d/Thenable
  */
 
 import type TestSubject from '#interfaces/thenable'

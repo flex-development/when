@@ -18,7 +18,7 @@ import type { OnRejected, Thenable } from '@flex-development/when'
  * @template {any} [Next=never]
  *  The next resolved value
  *
- * @this {unknown}
+ * @this {any}
  *
  * @param {OnRejected<Next, Reason> | null | undefined} [onrejected]
  *  The callback to execute when the thenable is rejected
@@ -26,7 +26,7 @@ import type { OnRejected, Thenable } from '@flex-development/when'
  *  The next thenable
  */
 type Catch<T = unknown, Reason = any> = <Next = never>(
-  this: unknown,
+  this: any,
   onrejected?: OnRejected<Next, Reason> | null | undefined
 ) => Thenable<Next | T>
 

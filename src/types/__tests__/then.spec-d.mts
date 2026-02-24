@@ -12,8 +12,8 @@ describe('unit-d:types/Then', () => {
   type Reason = Error
   type Subject = TestSubject<T, Reason>
 
-  it('should match [this: unknown]', () => {
-    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<unknown>()
+  it('should match [this: any]', () => {
+    expectTypeOf<Subject>().thisParameter.toEqualTypeOf<any>()
   })
 
   describe('parameters', () => {

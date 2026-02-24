@@ -1,6 +1,6 @@
 /**
  * @file Type Tests - Finalizable
- * @module when/types/tests/unit-d/Finalizable
+ * @module when/interfaces/tests/unit-d/Finalizable
  */
 
 import type TestSubject from '#interfaces/finalizable'

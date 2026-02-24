@@ -21,7 +21,7 @@ import type { OnFulfilled, OnRejected, Thenable } from '@flex-development/when'
  * @template {any} [Fail=never]
  *  The next resolved value on failure
  *
- * @this {unknown}
+ * @this {any}
  *
  * @param {OnFulfilled<T, Succ> | null | undefined} [onfulfilled]
  *  The callback to execute when the thenable is resolved
@@ -31,7 +31,7 @@ import type { OnFulfilled, OnRejected, Thenable } from '@flex-development/when'
  *  The next thenable
  */
 type Then<T = unknown, Reason = any> = <Succ = T, Fail = never>(
-  this: unknown,
+  this: any,
   onfulfilled?: OnFulfilled<T, Succ> | null | undefined,
   onrejected?: OnRejected<Fail, Reason> | null | undefined
 ) => Thenable<Fail | Succ>

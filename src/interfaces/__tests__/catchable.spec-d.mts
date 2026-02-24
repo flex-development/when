@@ -1,6 +1,6 @@
 /**
  * @file Type Tests - Catchable
- * @module when/types/tests/unit-d/Catchable
+ * @module when/interfaces/tests/unit-d/Catchable
  */
 
 import type TestSubject from '#interfaces/catchable'
