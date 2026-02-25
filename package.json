@@ -1,7 +1,7 @@
 {
   "name": "@flex-development/when",
   "description": "Chain callbacks on synchronous values or thenables without forcing Promise.resolve or microtasks.",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "keywords": [
     "async",
     "await",
