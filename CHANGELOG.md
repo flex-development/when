@@ -1,3 +1,34 @@
+## [3.0.0](https://github.com/flex-development/when/compare/2.0.0...3.0.0) (2026-02-24)
+
+### ⚠ BREAKING CHANGES
+
+- `Catchable`, `Finalizable`, `Thenable`
+
+### :package: Build
+
+- [[`340df4f`](https://github.com/flex-development/when/commit/340df4f57ed241acc8ce8ab424cccfc023a949c2)] **deps-dev:** Bump cspell from 9.6.4 to 9.7.0 ([#18](https://github.com/flex-development/when/issues/18))
+- [[`07726cd`](https://github.com/flex-development/when/commit/07726cd69f2153aae740c10697abfeabbc357b70)] **deps-dev:** Bump happy-dom from 20.6.3 to 20.7.0 ([#16](https://github.com/flex-development/when/issues/16))
+- [[`ea80b80`](https://github.com/flex-development/when/commit/ea80b80eb67613cda8b7c45cd2d3aa6cd7dbc25b)] **deps-dev:** Bump rollup from 4.57.1 to 4.58.0 ([#13](https://github.com/flex-development/when/issues/13))
+- [[`ef6cb07`](https://github.com/flex-development/when/commit/ef6cb07c6446ba449bdc02610d4aba2e26dd8786)] **deps-dev:** Bump rollup from 4.58.0 to 4.59.0 ([#17](https://github.com/flex-development/when/issues/17))
+
+### :robot: Continuous Integration
+
+- [[`ca32394`](https://github.com/flex-development/when/commit/ca323946f35cb01944141ea58504e940574e9b10)] **deps:** Bump streetsidesoftware/cspell-action from 8.2.0 to 8.3.0 ([#19](https://github.com/flex-development/when/issues/19))
+
+### :pencil: Documentation
+
+- [[`9636e24`](https://github.com/flex-development/when/commit/9636e24f6cc999d9256cc7ba0d3afad3bbfe5d6d)] testing
+
+### :sparkles: Features
+
+- [[`94af5ff`](https://github.com/flex-development/when/commit/94af5ffeb6e9b3330088f9eb48d4644c0592d53c)] `finally` support
+- [[`e8ee57a`](https://github.com/flex-development/when/commit/e8ee57a301df194744163611169de33ed7f85738)] `Catchable`, `Finalizable`, `Thenable`
+- [[`e75d78d`](https://github.com/flex-development/when/commit/e75d78d4265d384b10e09206a332e1abee2d4d2d)] **testing:** `createThenable`
+
+### :bug: Fixes
+
+- [[`014a949`](https://github.com/flex-development/when/commit/014a94908eb0fc1d39efcd2f19c0922b40fc9894)] **lib:** export `isCatchable`
+
 ## [2.0.0](https://github.com/flex-development/when/compare/1.0.0...2.0.0) (2026-02-19)
 
 ### ⚠ BREAKING CHANGES
@@ -84,6 +115,7 @@
 ### :house_with_garden: Housekeeping
 
 - [[`a5418df`](https://github.com/flex-development/when/commit/a5418dfc0cae7c2ca231e735665d76b625615edc)] initial commit
+
 
 
 
