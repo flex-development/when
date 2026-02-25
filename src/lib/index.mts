@@ -3,6 +3,7 @@
  * @module when/lib
  */
 
+export { default as isCatchable } from '#lib/is-catchable'
 export { default as isFinalizable } from '#lib/is-finalizable'
 export { default as isPromise } from '#lib/is-promise'
 export { default as isPromiseLike } from '#lib/is-promise-like'
