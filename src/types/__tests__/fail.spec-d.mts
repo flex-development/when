@@ -7,18 +7,18 @@ import type TestSubject from '#types/fail'
 import type { Awaitable } from '@flex-development/when'
 
 describe('unit-d:types/Fail', () => {
-  type Fail = Error
+  type Reason = Error
   type Next = URL | null
   type This = { ignoreErrors?: boolean | null | undefined }
-  type Subject = TestSubject<Next, Fail, This>
+  type Subject = TestSubject<Next, Reason, This>
 
   it('should match [this: This]', () => {
     expectTypeOf<Subject>().thisParameter.toEqualTypeOf<This>()
   })
 
   describe('parameters', () => {
-    it('should be callable with [Fail]', () => {
-      expectTypeOf<Subject>().parameters.toEqualTypeOf<[Fail]>()
+    it('should be callable with [Reason]', () => {
+      expectTypeOf<Subject>().parameters.toEqualTypeOf<[Reason]>()
     })
   })
 

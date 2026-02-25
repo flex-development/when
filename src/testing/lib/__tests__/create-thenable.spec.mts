@@ -13,6 +13,7 @@ import type { CreateThenableOptions } from '@flex-development/when/testing'
 
 describe('unit:testing/lib/createThenable', () => {
   it.each<[CreateThenableOptions]>([
+    [{}],
     [{ catch: false }],
     [{ catch: null, finally: undefined }],
     [{ finally: false }]

@@ -1,6 +1,6 @@
 /**
  * @file Type Aliases - State
- * @module when/types/State
+ * @module when/testing/types/State
  */
 
 import type { Awaitable } from '@flex-development/when'

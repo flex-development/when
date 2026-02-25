@@ -12,22 +12,22 @@ import type { Awaitable } from '@flex-development/when'
  *
  * @template {any} [Next=any]
  *  The next resolved value
- * @template {any} [Error=any]
- *  The error to handle
+ * @template {any} [Reason=any]
+ *  The reason for the failure
  * @template {any} [This=unknown]
  *  The `this` context
  *
  * @this {This}
  *
- * @param {unknown} e
- *  The error
+ * @param {Reason} reason
+ *  The reason for the failure
  * @return {Awaitable<Next>}
  *  The next awaitable
  */
 type Fail<
   Next = any,
-  Error = any,
+  Reason = any,
   This = unknown
-> = (this: This, e: Error) => Awaitable<Next>
+> = (this: This, reason: Reason) => Awaitable<Next>
 
 export type { Fail as default }

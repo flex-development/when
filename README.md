@@ -38,12 +38,16 @@ like `.then`, but for synchronous values *and* thenables.
   <!--lint disable-->
   - [`when<T[, Next][, Failure][, Args][, Error][, This][, Result]>(value, chain[, fail][, context][, ...args])`][when]
   <!--lint enable-->
+- [Testing](#testing)
+  - [`createThenable<T[, Reason][, Result]>(executor[, options])`][createthenable]
 - [Types](#types)
   - [`Awaitable<T>`][awaitable]
   - [`Catch<[T][, Reason]>`][catch]
   - [`Catchable<[T]>`][catchable]
   - [`Chain<[T][, Next][, Args][, This]>`][chain]
-  - [`Fail<[Next][, Error][, This]>`][fail]
+  - [`CreateThenableOptions`][createthenableoptions]
+  - [`Executor<[T][, Reason]>`][executor]
+  - [`Fail<[Next][, Reason][, This]>`][fail]
   - [`Finalizable<[T]>`][finalizable]
   - [`Finally<[T]>`][finally]
   - [`Finish<[This]>`][finish]
@@ -52,6 +56,8 @@ like `.then`, but for synchronous values *and* thenables.
   - [`OnRejected<Next[, Reason]>`][onrejected]
   - [`Options<[T][, Next][, Failure][, Args][, Error][, This]>`][options]
   - [`PromiseLike<T>`][promiselike]
+  - [`Reject<[Reason]>`][reject]
+  - [`Resolve<[T]>`][resolve]
   - [`Then<[T][, Reason]>`][then]
   - [`Thenable<[T]>`][thenable]
 - [Glossary](#glossary)
@@ -72,7 +78,7 @@ This makes it easy to write one code path that supports both synchronous values 
 
 `when` is especially useful in libraries implementing awaitable APIs.
 
-It provides [`Promise.then`][promise-then] semantics without forcing [`Promise.resolve`][promise-resolve],
+It provides [`Promise.prototype.then`][promise-then] semantics without forcing [`Promise.resolve`][promise-resolve],
 preserving synchronous execution whenever possible.
 
 Typical use cases include plugin systems, hook pipelines, module resolvers, data loaders, and file system adapters where
@@ -96,10 +102,9 @@ when(value, fn) // only a promise if `value` is a thenable, or `fn` returns one
 ### Design guarantees
 
 - Synchronous values remain synchronous
-- [*Thenable*s][thenable-term] are chained without wrapping in [`Promise.resolve`][promise-resolve]
+- [*Thenable*s][thenable-term] are chained directly without wrapping in [`Promise.resolve`][promise-resolve]
 - No additional microtasks are scheduled for non-thenables
 - Failures propagate unless a `fail` handler is provided
-- Returned thenables are preserved without additional wrapping
 
 ## Install
 
@@ -170,7 +175,7 @@ console.dir(await result) // 3
 
 ### Pass arguments to the chain callback
 
-When arguments are provided, they are passed to the `chain` callback first, followed by the resolved value.
+When arguments are provided, they are passed to the [`chain`][chain] callback first, followed by the resolved value.
 
 When the `value` passed to `when` is not a [*thenable*][thenable-term], the resolved value is the same `value`.
 
@@ -197,8 +202,8 @@ console.dir(result) // 1
 
 ### Handle failures
 
-For [*thenable*s][thenable-term], the `fail` callback is passed to `then` as the `onrejected` parameter,
-and if implemented, to `catch` as well to prevent unhandled rejections.
+For [*thenable*s][thenable-term], the [`fail`][fail] callback is passed to [`then`][then] as the `onrejected` parameter,
+and if implemented, to [`catch`][catch] as well to prevent unhandled rejections.
 
 ```ts
 import when from '@flex-development/when'
@@ -430,7 +435,7 @@ and [`finally`][finally] method (if requested), `false` otherwise
 
 ### `isPromiseLike<T>(value)`
 
-Check if `value` looks like a `PromiseLike` structure.
+Check if `value` looks like a [`PromiseLike`][promiselike] structure.
 
 #### Type Parameters
 
@@ -575,6 +580,68 @@ function when<
 
 ([`Awaitable<Failure | Next>`][awaitable] | [`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
 
+## Testing
+
+Test utilities are exported from `@flex-development/when/testing`.
+
+There is no default export.
+
+```ts
+import {
+  isCatchable,
+  isFinalizable,
+  type Thenable
+} from '@flex-development/when'
+import { createThenable } from '@flex-development/when/testing'
+import { ok } from 'devlop'
+
+/**
+ * The thenable.
+ *
+ * @const {Thenable<number>} thenable
+ */
+const thenable: Thenable<number> = createThenable(resolve => resolve(10))
+
+ok(isCatchable(thenable), 'expected `thenable` to be a catchable')
+ok(isFinalizable(thenable), 'expected `thenable` to be a finalizable')
+
+console.dir(await thenable.then(value => value + 3)) // 13
+```
+
+### `createThenable<T[, Reason][, Result]>(executor[, options])`
+
+Create a thenable.
+
+The returned object conforms to [`Thenable`][thenable] and ensures [`then`][then] always returns another `Thenable`,
+even when adopting a foreign [*thenable*][thenable-term].
+
+When `options` is omitted, `null`, or `undefined`, the returned thenable is *modern* (a [*thenable*][thenable-term]
+with [`then`][then], [`catch`][catch], and [`finally`][finally] methods).
+Pass an options object (e.g. `{}`) to start from a *bare* ([`then`][then] method only) thenable
+and selectively enable methods.
+
+#### Type Parameters
+
+- `T` (`any`)
+  — the resolved value
+- `Reason` (`any`, optional)
+  — the reason for a rejection
+  - **default**: `Error`
+- `Result` ([`Thenable<T>`][thenable], optional)
+  — the thenable
+  - **default**: [`Thenable<T>`][thenable]
+
+#### Parameters
+
+- `executor` ([`Executor<T, Reason>`][executor])
+  — the initialization callback
+- `options` ([`CreateThenableOptions`][createthenableoptions] | `null` | `undefined`, optional)
+  — options for creating a thenable
+
+#### Returns
+
+(`Result`) The [*thenable*][thenable-term]
+
 ## Types
 
 This package is fully typed with [TypeScript][].
@@ -682,16 +749,71 @@ type Chain<
 
 ([`Awaitable<Next>`][awaitable]) The next [*awaitable*][awaitable-term]
 
-### `Fail<[Next][, Error][, This]>`
+### `CreateThenableOptions`
+
+Options for creating a [*thenable*][thenable-term] (`interface`).
+
+> 👉 **Note**: Exported from `@flex-development/when/testing` only.
+
+#### Properties
+
+- `catch?` (`boolean` | `null` | `undefined`)
+  — control whether returned thenables implement a [`catch`][catch] method.\
+  when an options object is omitted, `null`, or `undefined`, the method will be implemented.\<br/>
+  when an options object is provided, `catch` is only implemented if `options.catch` is `true`.\
+  if `options.catch` is `null` or `undefined`, the thenable's `catch` property will have the same value.\
+  pass `false` to disable the method implementation
+- `finally?` (`boolean` | `null` | `undefined`)
+  — control whether returned thenables implement a [`finally`][finally] method.\
+  when an options object is omitted, `null`, or `undefined`, the method will be implemented.\
+  when an options object is provided, `finally` is only implemented if `options.finally` is `true`.\
+  if `options.finally` is `null` or `undefined`, the thenable's `finally` property will have the same value.\
+  pass `false` to disable the method implementation
+
+### `Executor<[T][, Reason]>`
+
+The callback used to initialize a [*thenable*][thenable-term] (`type`).
+
+> 👉 **Note**: Exported from `@flex-development/when/testing` only.
+
+```ts
+type Executor<T = any, Reason = Error> = (
+  this: void,
+  resolve: Resolve<T>,
+  reject: Reject<Reason>
+) => undefined | void
+```
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `any`
+- `Reason` (`any`, optional)
+  — the reason for a rejection
+  - **default**: `Error`
+
+#### Parameters
+
+- `resolve` ([`Resolve<T>`][resolve])
+  — the callback used to resolve the thenable with a value or the result of another [*awaitable*][awaitable-term]
+- `reject` ([`Reject<Reason>`][reject])
+  — the callback used to reject the thenable with a provided reason or error
+
+#### Returns
+
+(`undefined` | `void`) Nothing
+
+### `Fail<[Next][, Reason][, This]>`
 
 The callback to fire when a failure occurs (`type`).
 
 ```ts
 type Fail<
   Next = any,
-  Error = any,
+  Reason = any,
   This = unknown
-> = (this: This, e: Error) => Awaitable<Next>
+> = (this: This, reason: Reason) => Awaitable<Next>
 ```
 
 #### Type Parameters
@@ -699,8 +821,8 @@ type Fail<
 - `Next` (`any`, optional)
   — the next resolved value
   - **default**: `any`
-- `Error` (`any`, optional)
-  — the error to handle
+- `Reason` (`any`, optional)
+  — the reason for the failure
   - **default**: `any`
 - `This` (`any`, optional)
   — the `this` context
@@ -709,8 +831,8 @@ type Fail<
 #### Parameters
 
 - **`this`** (`This`)
-- `e` (`Error`)
-  — the error
+- `reason` (`Reason`)
+  — the reason for the failure
 
 #### Returns
 
@@ -920,6 +1042,57 @@ This is required for both compatibility, and type inference when mixing `Thenabl
 - `T` (`any`)
   — the resolved value
 
+### `Reject<[Reason]>`
+
+The callback used to reject a [*thenable*][thenable-term] with a provided reason or error (`type`).
+
+> 👉 **Note**: Exported from `@flex-development/when/testing` only.
+
+```ts
+type Reject<Reason = Error> = (this: void, reason: Reason) => undefined
+```
+
+#### Type Parameters
+
+- `Reason` (`any`, optional)
+  — the reason for the rejection
+  - **default**: `Error`
+
+#### Parameters
+
+- `reason` (`Reason`)
+  — the reason for the rejection
+
+#### Returns
+
+(`undefined`) Nothing
+
+### `Resolve<[T]>`
+
+The callback used to resolve a [*thenable*][thenable-term] with a value
+or the result of another [*awaitable*][awaitable-term] (`type`).
+
+> 👉 **Note**: Exported from `@flex-development/when/testing` only.
+
+```ts
+type Resolve<T = any> = (this: void, value: Awaitable<T>) => undefined
+```
+
+#### Type Parameters
+
+- `T` (`any`, optional)
+  — the resolved value
+  - **default**: `any`
+
+#### Parameters
+
+- `value` ([`Awaitable<T>`][awaitable])
+  — the awaitable
+
+#### Returns
+
+(`undefined`) Nothing
+
 ### `Then<T[, Reason]>`
 
 Attach callbacks for the resolution and/or rejection of a [`Thenable`][thenable] (`type`).
@@ -1034,11 +1207,17 @@ Support long-term stability by sponsoring Flex Development.
 
 [chain]: #chaint-next-args-this
 
+[createthenable]: #createthenablet-reason-resultexecutor-options
+
+[createthenableoptions]: #createthenableoptions
+
 [esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
 
 [esmsh]: https://esm.sh
 
-[fail]: #failnext-error-this
+[executor]: #executort-reason
+
+[fail]: #failnext-reason-this
 
 [finalizable]: #finalizablet
 
@@ -1069,6 +1248,10 @@ Support long-term stability by sponsoring Flex Development.
 [promise-then]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
 
 [promiselike]: #promiseliket
+
+[reject]: #rejectreason
+
+[resolve]: #resolvet
 
 [semver]: https://semver.org
 

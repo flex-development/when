@@ -60,10 +60,11 @@ describe('functional:testing/lib/createThenable', () => {
 
   it('should return a thenable from `finally`', async () => {
     // Act
-    const result = testSubject(succ => succ(resolved.succ)).finally!()
+    const result = testSubject(succ => succ(resolved.succ))
+    const res = result.finally!()
 
     // Expect
-    expect(result).to.satisfy(isPromise)
+    expect(result).to.eq(res).and.satisfy(isPromise)
     await expect(result).resolves.to.eq(resolved.succ)
   })
 
@@ -89,23 +90,6 @@ describe('functional:testing/lib/createThenable', () => {
   })
 
   describe('errors', () => {
-    it('should adopt foreign rejection without `onrejected`', async () => {
-      // Act
-      let result = testSubject(succ => succ(resolved.succ))
-      result = result.then(vi.fn().mockRejectedValue(boom))
-
-      // Expect
-      await expect(result.then()).rejects.to.throw(boom)
-    })
-
-    it('should propagate rejection without `onrejected`', async () => {
-      // Act
-      const result = testSubject((succ, fail) => fail(boom))
-
-      // Expect
-      await expect(result.then()).rejects.to.throw(boom)
-    })
-
     it('should skip `onfulfilled` when rejected', async () => {
       // Arrange
       const onfulfilled: Mock<OnFulfilled<unknown>> = vi.fn()
@@ -155,6 +139,44 @@ describe('functional:testing/lib/createThenable', () => {
       // Expect
       await expect(result.finally(onfinally)).rejects.to.throw(boom)
       expect(onfinally).toHaveBeenCalledTimes(1)
+    })
+
+    describe('without `onrejected`', () => {
+      it('should adopt foreign rejection from `executor`', async () => {
+        // Arrange
+        const foreign: Promise<never> = Promise.reject(boom)
+
+        // Act
+        const result = testSubject(succ => succ(foreign)).then()
+
+        // Expect
+        await expect(result).rejects.to.throw(boom)
+      })
+
+      it('should adopt rejected thenable', async () => {
+        // Act
+        let result = testSubject(succ => succ(resolved.succ))
+        result = result.then(vi.fn().mockRejectedValue(boom))
+
+        // Expect
+        await expect(result.then()).rejects.to.throw(boom)
+      })
+
+      it('should propagate rejection through `catch`', async () => {
+        // Act
+        const result = testSubject((succ, fail) => fail(boom))
+
+        // Expect
+        await expect(result.catch!()).rejects.to.throw(boom)
+      })
+
+      it('should propagate rejection through `then`', async () => {
+        // Act
+        const result = testSubject((succ, fail) => fail(boom))
+
+        // Expect
+        await expect(result.then()).rejects.to.throw(boom)
+      })
     })
   })
 })

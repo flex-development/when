@@ -26,6 +26,11 @@ export default createThenable
  * always returns another {@linkcode Thenable}, even when adopting a foreign
  * thenable.
  *
+ * When `options` is omitted, `null`, or `undefined`, the returned thenable is
+ * *modern* (a thenable with `then`, `catch`, and `finally` methods).
+ * Pass an options object (e.g. `{}`) to start from a *bare* (`then` method
+ * only) thenable and selectively enable methods.
+ *
  * @see {@linkcode CreateThenableOptions}
  * @see {@linkcode Executor}
  * @see {@linkcode Thenable}
@@ -33,7 +38,7 @@ export default createThenable
  * @template {any} T
  *  The resolved value
  * @template {any} [Reason=Error]
- *  The reason for the rejection
+ *  The reason for a rejection
  * @template {Thenable<T>} [Result=Thenable<T>]
  *  The thenable
  *
@@ -43,7 +48,7 @@ export default createThenable
  *  The initialization callback
  * @param {CreateThenableOptions | null | undefined} [options]
  *  Options for creating a thenable
- * @return {Thenable<T>}
+ * @return {Result}
  *  The thenable
  */
 function createThenable<
@@ -293,7 +298,6 @@ function createThenable<
    *  The callback to execute when the thenable is rejected
    * @return {Awaitable<T>}
    *  The next awaitable
-   * @throws {unknown}
    */
   function reject<T>(
     this: void,
@@ -356,7 +360,6 @@ function createThenable<
        *  The callback to execute when the thenable is rejected
        * @return {Thenable<Failure | Next>}
        *  The next thenable
-       * @throws {unknown}
        */
       then<Next = S, Failure = never>(
         this: void,

@@ -1,6 +1,6 @@
 /**
  * @file Type Aliases - Reject
- * @module when/types/Reject
+ * @module when/testing/types/Reject
  */
 
 /**
